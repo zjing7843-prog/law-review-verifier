@@ -61,3 +61,11 @@
 - [x] Allow users to change category via dropdown
 - [x] Keep citation text as-is without parsing
 - [x] Update verification to work with full citation text
+
+
+## Improve Category Detection Accuracy
+- [x] Update case detection: court citations [YYYY] COURT, R v Party, "at [56]" references
+- [x] Update article detection: Author, 'Title' (Year) Journal pattern
+- [x] Update other detection: Department names, URLs, government publications
+- [x] Add "ibid" handling to inherit category from previous citation
+- [x] Test with real legal citations provided by user

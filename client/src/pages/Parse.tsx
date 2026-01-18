@@ -43,25 +43,59 @@ export default function Parse() {
     setCitations(parsed);
   }, [isAuthenticated, setLocation]);
 
-  const detectCategory = (text: string): CitationCategory => {
-    const lowerText = text.toLowerCase();
+  const detectCategory = (text: string, previousCategory?: CitationCategory): CitationCategory => {
+    const trimmed = text.trim();
+    const lowerText = trimmed.toLowerCase();
     
-    // Case detection: Look for case names (typically "v" or "v." between parties)
-    // Also look for court citations like "[2023] HKCFA" or "(2023) 1 HKC"
+    // Handle "ibid" - inherit category from previous citation
+    if (lowerText === 'ibid' || lowerText.startsWith('ibid.') || lowerText.startsWith('ibid,')) {
+      return previousCategory || "other";
+    }
+    
+    // Case detection patterns:
+    // 1. Court citations: [2017] EWCA Crim 1168, [1994] 3 ALL E R 79
+    // 2. Party names with "v": R v Adomako, Smith v Jones
+    // 3. Paragraph references: "at [56]"
+    // 4. Case names ending with year in brackets or parentheses
     if (
-      /\sv\.?\s/i.test(text) || // "Smith v Jones" or "Smith v. Jones"
-      /\[\d{4}\]\s+[A-Z]+/i.test(text) || // "[2023] HKCFA"
-      /\(\d{4}\)\s+\d+\s+[A-Z]+/i.test(text) // "(2023) 1 HKC"
+      /\[\d{4}\]\s+[A-Z]/i.test(text) || // "[2017] EWCA" or "[1994] 3 ALL"
+      /\b[A-Z][a-z]*\s+v\.?\s+[A-Z]/i.test(text) || // "R v Adomako" or "Smith v. Jones"
+      /\bat\s+\[\d+\]/i.test(text) || // "at [56]"
+      /\(\d{4}\)\s+\d+\s+[A-Z]{2,}/i.test(text) // "(2019) 22 HKCFAR"
     ) {
       return "case";
     }
     
-    // Article/Book detection: Look for quotes (titles) and publication info
-    if (/'[^']+'/.test(text) || /"[^"]+"/.test(text)) {
+    // Article/Book detection patterns:
+    // Author, 'Title' (Year) Journal pattern
+    // Must have: quoted title + year in parentheses + journal/publication info
+    const hasQuotedTitle = /'[^']+'/.test(text) || /[''][^'']+['']/.test(text);
+    const hasYearInParens = /\(\d{4}\)/.test(text);
+    const hasJournalInfo = /\d+\s*\(\d+\)|Vol\s*\d+|\d+\s+[A-Z][a-z]+\s+[A-Z]/i.test(text);
+    
+    if (hasQuotedTitle && hasYearInParens && (hasJournalInfo || /,\s*\d+\.?$/.test(text))) {
       return "article";
     }
     
-    // Default to other
+    // Other detection patterns:
+    // 1. URLs (https:// or http://)
+    // 2. Department/Organization names
+    // 3. Government publications
+    if (
+      /https?:\/\//i.test(text) ||
+      /^Department\s+of/i.test(text) ||
+      /Government/i.test(text) ||
+      /Available\s+at/i.test(text)
+    ) {
+      return "other";
+    }
+    
+    // Default: if has quoted title but doesn't match article pattern, likely other
+    // Otherwise check for case-like features
+    if (hasQuotedTitle) {
+      return "other";
+    }
+    
     return "other";
   };
 
@@ -69,13 +103,14 @@ export default function Parse() {
     const lines = text.split('\n').filter(l => l.trim());
     const results: ParsedCitation[] = [];
     let currentNumber = 1;
+    let previousCategory: CitationCategory | undefined = undefined;
 
     lines.forEach((line, lineIndex) => {
       // Split by semicolon for multiple citations within one line
       const subCitations = line.split(';').map(s => s.trim()).filter(s => s);
 
       subCitations.forEach((citation, subIndex) => {
-        const category = detectCategory(citation);
+        const category = detectCategory(citation, previousCategory);
         
         results.push({
           id: `${lineIndex}-${subIndex}`,
@@ -84,6 +119,7 @@ export default function Parse() {
           fullText: citation,
         });
         
+        previousCategory = category;
         currentNumber++;
       });
     });
