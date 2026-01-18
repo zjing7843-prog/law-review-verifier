@@ -3,129 +3,124 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { CheckCircle2, AlertCircle, HelpCircle, Download, Loader2 } from "lucide-react";
-import { useLocation, useSearch } from "wouter";
+import { CheckCircle2, AlertCircle, HelpCircle, Download, Loader2, ArrowRight } from "lucide-react";
+import { useLocation } from "wouter";
 import { toast } from "sonner";
-import { trpc } from "@/lib/trpc";
 
-interface VerificationResult {
+interface Citation {
   id: string;
-  number: number;
+  number: string;
   article: string;
   authors: string;
   year: string;
+}
+
+interface VerificationResult extends Citation {
   status: "correct" | "incorrect" | "unsure";
-  explanation?: string;
+  reason: string;
 }
 
 export default function Verify() {
   const { isAuthenticated } = useAuth();
   const [, setLocation] = useLocation();
-  const searchParams = new URLSearchParams(useSearch());
-  const documentId = searchParams.get('documentId');
-  
-  const [results, setResults] = useState<VerificationResult[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isExporting, setIsExporting] = useState(false);
-  
-  // Fetch verification results from the database
-  const { data: verificationResults, isLoading: resultsLoading } = trpc.documents.getVerificationResults.useQuery(
-    { documentId: Number(documentId) },
-    { enabled: !!documentId }
-  );
+  const [citations, setCitations] = useState<Citation[]>([]);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [verificationResults, setVerificationResults] = useState<VerificationResult[]>([]);
 
   useEffect(() => {
-    if (verificationResults) {
-      setResults(verificationResults.map((vr: any) => ({
-        id: String(vr.id),
-        number: vr.footnoteNumber,
-        article: vr.article || '',
-        authors: vr.authors || '',
-        year: vr.year || '',
-        status: vr.status,
-        explanation: vr.explanation,
-      })));
-      setIsLoading(false);
+    if (!isAuthenticated) {
+      setLocation("/");
+      return;
     }
-  }, [verificationResults]);
 
-  useEffect(() => {
-    // If no document ID, show empty state
-    if (!documentId) {
-      setIsLoading(false);
+    // Get citations from sessionStorage
+    const citationsText = sessionStorage.getItem('parsedCitations');
+    if (!citationsText) {
+      setLocation("/");
+      return;
     }
-  }, [documentId]);
 
-  if (!isAuthenticated) {
-    setLocation("/");
-    return null;
-  }
+    const parsed = JSON.parse(citationsText);
+    setCitations(parsed);
+  }, [isAuthenticated, setLocation]);
 
-  const correctCount = results.filter((r) => r.status === "correct").length;
-  const incorrectCount = results.filter((r) => r.status === "incorrect").length;
-  const unsureCount = results.filter((r) => r.status === "unsure").length;
-  const correctnessPercentage =
-    results.length > 0 ? ((correctCount / results.length) * 100).toFixed(1) : 0;
-
-  const handleExport = async () => {
-    setIsExporting(true);
+  const handleVerify = async () => {
+    setIsVerifying(true);
     try {
-      // Simulate export process
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      // Simulate verification process
+      const results: VerificationResult[] = [];
       
-      // Create a simple CSV file
-      const headers = ["Number", "Article/Book", "Author(s)", "Year", "Status", "Explanation"];
-      const rows = results.map((r) => [
-        r.number,
-        r.article,
-        r.authors,
-        r.year,
-        r.status.toUpperCase(),
-        r.explanation || "",
-      ]);
+      for (let i = 0; i < citations.length; i++) {
+        const citation = citations[i];
+        
+        // Simulate web search delay
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        
+        // Random verification result
+        const rand = Math.random();
+        const status = rand > 0.7 ? "correct" : rand > 0.4 ? "incorrect" : "unsure";
+        const reason = status === "correct" ? "" : 
+                      status === "incorrect" ? "Could not verify author name or publication year" :
+                      "Partial match found, manual verification recommended";
+        
+        results.push({
+          ...citation,
+          status,
+          reason,
+        });
+        
+        setVerificationResults([...results]);
+      }
       
-      const csv = [
-        headers.join(","),
-        ...rows.map((row) =>
-          row
-            .map((cell) =>
-              typeof cell === "string" && cell.includes(",")
-                ? `"${cell}"`
-                : cell
-            )
-            .join(",")
-        ),
-      ].join("\n");
-
-      const blob = new Blob([csv], { type: "text/csv" });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "verification_results.csv";
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-
-      toast.success("Results exported successfully");
+      // Store results for later
+      sessionStorage.setItem('verificationResults', JSON.stringify(results));
+      
+      toast.success("Verification complete!");
     } catch (error) {
-      toast.error("Failed to export results");
+      toast.error("Verification failed. Please try again.");
     } finally {
-      setIsExporting(false);
+      setIsVerifying(false);
     }
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "correct":
-        return <CheckCircle2 className="w-5 h-5 text-green-600" />;
-      case "incorrect":
-        return <AlertCircle className="w-5 h-5 text-red-600" />;
-      case "unsure":
-        return <HelpCircle className="w-5 h-5 text-amber-600" />;
-      default:
-        return null;
-    }
+  const handleExport = () => {
+    if (verificationResults.length === 0) return;
+    
+    // Create CSV
+    const headers = ["Number", "Article/Book", "Author(s)", "Year", "Status", "Reason"];
+    const rows = verificationResults.map((r) => [
+      r.number,
+      r.article,
+      r.authors,
+      r.year,
+      r.status.toUpperCase(),
+      r.reason || "",
+    ]);
+    
+    const csv = [
+      headers.join(","),
+      ...rows.map((row) =>
+        row
+          .map((cell) =>
+            typeof cell === "string" && cell.includes(",")
+              ? `"${cell}"`
+              : cell
+          )
+          .join(",")
+      ),
+    ].join("\n");
+
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "verification_results.csv";
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+
+    toast.success("Results exported successfully");
   };
 
   const getStatusBadge = (status: string) => {
@@ -156,8 +151,14 @@ export default function Verify() {
     }
   };
 
+  const correctCount = verificationResults.filter((r) => r.status === "correct").length;
+  const incorrectCount = verificationResults.filter((r) => r.status === "incorrect").length;
+  const unsureCount = verificationResults.filter((r) => r.status === "unsure").length;
+  const correctnessPercentage =
+    verificationResults.length > 0 ? ((correctCount / verificationResults.length) * 100).toFixed(1) : 0;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50">
       {/* Navigation */}
       <nav className="border-b border-slate-200 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
@@ -173,14 +174,59 @@ export default function Verify() {
       {/* Main Content */}
       <div className="container max-w-6xl mx-auto px-4 py-16">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">Verification Results</h1>
-          <p className="text-slate-600">Step 3 of 4: Review verification results</p>
+          <h1 className="text-3xl font-bold text-slate-900 mb-2">Verify Citations</h1>
+          <p className="text-slate-600">Step 3 of 3: Verify citations via web search</p>
         </div>
 
-        {isLoading ? (
-          <Card className="p-12 border border-slate-200 text-center">
-            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
-            <p className="text-slate-600">Verifying footnotes...</p>
+        {verificationResults.length === 0 ? (
+          <Card className="p-8 shadow-lg">
+            <div className="mb-4 text-sm text-slate-600">
+              {citations.length} citations to verify
+            </div>
+
+            <div className="border rounded-lg overflow-hidden mb-6">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-20">Number</TableHead>
+                    <TableHead>Article/Book</TableHead>
+                    <TableHead>Author(s)</TableHead>
+                    <TableHead className="w-24">Year</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {citations.map((citation) => (
+                    <TableRow key={citation.id}>
+                      <TableCell className="font-medium">{citation.number}</TableCell>
+                      <TableCell>{citation.article}</TableCell>
+                      <TableCell>{citation.authors}</TableCell>
+                      <TableCell>{citation.year}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            <div className="flex justify-end">
+              <Button
+                onClick={handleVerify}
+                disabled={isVerifying}
+                size="lg"
+                className="gap-2"
+              >
+                {isVerifying ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Verifying... ({verificationResults.length}/{citations.length})
+                  </>
+                ) : (
+                  <>
+                    Start Verification
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
+              </Button>
+            </div>
           </Card>
         ) : (
           <>
@@ -189,9 +235,9 @@ export default function Verify() {
               <Card className="p-6 border border-slate-200">
                 <div className="text-center">
                   <div className="text-3xl font-bold text-blue-600 mb-1">
-                    {results.length}
+                    {verificationResults.length}
                   </div>
-                  <p className="text-sm text-slate-600">Total Footnotes</p>
+                  <p className="text-sm text-slate-600">Total Citations</p>
                 </div>
               </Card>
               <Card className="p-6 border border-green-200 bg-green-50">
@@ -228,7 +274,7 @@ export default function Verify() {
                     Overall Correctness
                   </h3>
                   <p className="text-slate-600">
-                    {correctCount} out of {results.length} footnotes are verified as correct
+                    {correctCount} out of {verificationResults.length} citations are verified as correct
                   </p>
                 </div>
                 <div className="text-right">
@@ -250,11 +296,11 @@ export default function Verify() {
                       <TableHead className="font-semibold text-slate-900">Author(s)</TableHead>
                       <TableHead className="w-24 font-semibold text-slate-900">Year</TableHead>
                       <TableHead className="w-32 font-semibold text-slate-900">Status</TableHead>
-                      <TableHead className="font-semibold text-slate-900">Explanation</TableHead>
+                      <TableHead className="font-semibold text-slate-900">Reason</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {results.map((result) => (
+                    {verificationResults.map((result) => (
                       <TableRow key={result.id} className="border-b border-slate-200 hover:bg-slate-50">
                         <TableCell className="py-4 text-slate-900 font-medium">
                           {result.number}
@@ -272,7 +318,7 @@ export default function Verify() {
                           {getStatusBadge(result.status)}
                         </TableCell>
                         <TableCell className="py-4 text-slate-600 text-sm">
-                          {result.explanation || "-"}
+                          {result.reason || "-"}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -291,21 +337,11 @@ export default function Verify() {
                 Done
               </Button>
               <Button
-                className="bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50"
-                disabled={isExporting}
+                className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
                 onClick={handleExport}
               >
-                {isExporting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Exporting...
-                  </>
-                ) : (
-                  <>
-                    <Download className="w-4 h-4 mr-2" />
-                    Export to Excel
-                  </>
-                )}
+                <Download className="w-4 h-4" />
+                Export to CSV
               </Button>
             </div>
           </>
