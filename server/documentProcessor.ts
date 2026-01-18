@@ -73,15 +73,26 @@ export function extractFootnotes(text: string): ExtractedFootnote[] {
     // Split by semicolon to handle multiple citations in one footnote
     const citations = footnoteText.split(';').map(c => c.trim()).filter(c => c.length > 0);
     
-    // For now, treat the entire footnote as one entry
-    // In the future, we could split into separate entries
-    const parsed = parseFootnoteText(footnoteText);
-    
-    footnotes.push({
-      number,
-      text: footnoteText,
-      ...parsed,
-    });
+    // Create separate entries for each citation, but keep the same footnote number
+    if (citations.length > 1) {
+      // Multiple citations in one footnote - split them
+      for (const citation of citations) {
+        const parsed = parseFootnoteText(citation);
+        footnotes.push({
+          number,
+          text: citation,
+          ...parsed,
+        });
+      }
+    } else {
+      // Single citation
+      const parsed = parseFootnoteText(footnoteText);
+      footnotes.push({
+        number,
+        text: footnoteText,
+        ...parsed,
+      });
+    }
   }
   
   // If no footnotes found with the above pattern, try a more aggressive approach
@@ -99,12 +110,26 @@ export function extractFootnotes(text: string): ExtractedFootnote[] {
       if (startMatch) {
         // Save previous footnote if exists
         if (currentFootnote) {
-          const parsed = parseFootnoteText(currentFootnote.text);
-          footnotes.push({
-            number: currentFootnote.number,
-            text: currentFootnote.text,
-            ...parsed,
-          });
+          // Split by semicolon for multiple citations
+          const citations = currentFootnote.text.split(';').map(c => c.trim()).filter(c => c.length > 0);
+          
+          if (citations.length > 1) {
+            for (const citation of citations) {
+              const parsed = parseFootnoteText(citation);
+              footnotes.push({
+                number: currentFootnote.number,
+                text: citation,
+                ...parsed,
+              });
+            }
+          } else {
+            const parsed = parseFootnoteText(currentFootnote.text);
+            footnotes.push({
+              number: currentFootnote.number,
+              text: currentFootnote.text,
+              ...parsed,
+            });
+          }
         }
         
         // Start new footnote
@@ -113,19 +138,32 @@ export function extractFootnotes(text: string): ExtractedFootnote[] {
           text: startMatch[2].trim(),
         };
       } else if (currentFootnote) {
-        // Continue current footnote
+        // Continue current footnote (shouldn't happen if footnotes are on single lines)
         currentFootnote.text += ' ' + trimmed;
       }
     }
     
     // Don't forget the last footnote
     if (currentFootnote) {
-      const parsed = parseFootnoteText(currentFootnote.text);
-      footnotes.push({
-        number: currentFootnote.number,
-        text: currentFootnote.text,
-        ...parsed,
-      });
+      const citations = currentFootnote.text.split(';').map(c => c.trim()).filter(c => c.length > 0);
+      
+      if (citations.length > 1) {
+        for (const citation of citations) {
+          const parsed = parseFootnoteText(citation);
+          footnotes.push({
+            number: currentFootnote.number,
+            text: citation,
+            ...parsed,
+          });
+        }
+      } else {
+        const parsed = parseFootnoteText(currentFootnote.text);
+        footnotes.push({
+          number: currentFootnote.number,
+          text: currentFootnote.text,
+          ...parsed,
+        });
+      }
     }
   }
   
@@ -189,16 +227,22 @@ function parseFootnoteText(text: string): Partial<ExtractedFootnote> {
 
 /**
  * Validate footnote count
+ * Note: When citations are split by semicolons, multiple entries can have the same footnote number
  */
 export function validateFootnoteCount(footnotes: ExtractedFootnote[], expectedCount: number): boolean {
   if (footnotes.length === 0) return false;
   
+  // Get unique footnote numbers
+  const uniqueNumbers = new Set(footnotes.map(f => f.number));
+  const sortedNumbers = Array.from(uniqueNumbers).sort((a, b) => a - b);
+  
   // Check if footnotes are numbered sequentially from 1
-  for (let i = 0; i < footnotes.length; i++) {
-    if (footnotes[i].number !== i + 1) {
+  for (let i = 0; i < sortedNumbers.length; i++) {
+    if (sortedNumbers[i] !== i + 1) {
       return false;
     }
   }
   
-  return footnotes.length === expectedCount;
+  // Expected count should match unique footnote numbers, not total entries
+  return sortedNumbers.length === expectedCount;
 }

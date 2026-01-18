@@ -60,3 +60,11 @@
 - [x] Handle multiple citations within single footnote (semicolon-separated)
 - [x] Parse legal citation format: Author, 'Title' (Year) Journal Page
 - [x] Improve footnote boundary detection for dense text
+
+
+## Enhancement: Split Multiple Citations
+- [x] Split semicolon-separated citations into separate rows
+- [x] Keep same footnote number for all citations within one footnote
+- [x] Update table display to show multiple rows per footnote number
+- [x] Update validation logic to handle repeated footnote numbers
+- [x] Add comprehensive tests for citation splitting
