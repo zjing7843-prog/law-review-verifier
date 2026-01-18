@@ -1,12 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AlertCircle, CheckCircle2, Edit2, Loader2 } from "lucide-react";
-import { useLocation } from "wouter";
+import { useLocation, useSearch } from "wouter";
 import { toast } from "sonner";
+import { trpc } from "@/lib/trpc";
 
 interface Footnote {
   id: string;
@@ -19,25 +20,33 @@ interface Footnote {
 export default function Extract() {
   const { isAuthenticated } = useAuth();
   const [, setLocation] = useLocation();
-  const [footnotes, setFootnotes] = useState<Footnote[]>([
-    {
-      id: "1",
-      number: 1,
-      article: "The Role of Artificial Intelligence in Modern Law",
-      authors: "Smith, J. and Johnson, M.",
-      year: "2023",
-    },
-    {
-      id: "2",
-      number: 2,
-      article: "Digital Rights and Privacy Protection",
-      authors: "Williams, A.",
-      year: "2022",
-    },
-  ]);
+  const searchParams = new URLSearchParams(useSearch());
+  const documentId = searchParams.get('documentId');
+  
+  const [footnotes, setFootnotes] = useState<Footnote[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValues, setEditValues] = useState<Partial<Footnote>>({});
   const [isVerifying, setIsVerifying] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Fetch footnotes from the database
+  const { data: dbFootnotes, isLoading: footnotesLoading } = trpc.documents.getFootnotes.useQuery(
+    { documentId: Number(documentId) },
+    { enabled: !!documentId }
+  );
+  
+  useEffect(() => {
+    if (dbFootnotes) {
+      setFootnotes(dbFootnotes.map(fn => ({
+        id: String(fn.id),
+        number: fn.number,
+        article: fn.article || '',
+        authors: fn.authors || '',
+        year: fn.year || '',
+      })));
+      setIsLoading(false);
+    }
+  }, [dbFootnotes]);
 
   if (!isAuthenticated) {
     setLocation("/");

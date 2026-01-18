@@ -103,3 +103,13 @@
 - [x] Show step-by-step extraction process in UI
 - [x] Allow user to see exactly what's being extracted
 - [x] Implemented actual extraction logic in tRPC procedure
+
+
+## Bug: Remove Hardcoded Mock Data
+- [x] Find where "The Role of Artificial Intelligence in Modern Law" is hardcoded
+- [x] Find where "Digital Rights and Privacy Protection" is hardcoded
+- [x] Remove all mock/fake footnote data from frontend and backend
+- [x] Ensure only real extracted footnotes are displayed
+- [x] Added getFootnotes and getVerificationResults procedures
+- [x] Updated Extract.tsx to fetch real data from database
+- [x] Updated Verify.tsx to fetch real verification results

@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CheckCircle2, AlertCircle, HelpCircle, Download, Loader2 } from "lucide-react";
-import { useLocation } from "wouter";
+import { useLocation, useSearch } from "wouter";
 import { toast } from "sonner";
+import { trpc } from "@/lib/trpc";
 
 interface VerificationResult {
   id: string;
@@ -20,54 +21,40 @@ interface VerificationResult {
 export default function Verify() {
   const { isAuthenticated } = useAuth();
   const [, setLocation] = useLocation();
+  const searchParams = new URLSearchParams(useSearch());
+  const documentId = searchParams.get('documentId');
+  
   const [results, setResults] = useState<VerificationResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
+  
+  // Fetch verification results from the database
+  const { data: verificationResults, isLoading: resultsLoading } = trpc.documents.getVerificationResults.useQuery(
+    { documentId: Number(documentId) },
+    { enabled: !!documentId }
+  );
 
   useEffect(() => {
-    // Simulate verification process
-    const timer = setTimeout(() => {
-      setResults([
-        {
-          id: "1",
-          number: 1,
-          article: "The Role of Artificial Intelligence in Modern Law",
-          authors: "Smith, J. and Johnson, M.",
-          year: "2023",
-          status: "correct",
-        },
-        {
-          id: "2",
-          number: 2,
-          article: "Digital Rights and Privacy Protection",
-          authors: "Williams, A.",
-          year: "2022",
-          status: "correct",
-        },
-        {
-          id: "3",
-          number: 3,
-          article: "Blockchain Technology and Legal Framework",
-          authors: "Brown, R.",
-          year: "2025",
-          status: "unsure",
-          explanation: "Publication year is in the future",
-        },
-        {
-          id: "4",
-          number: 4,
-          article: "Quantum Computing Applications",
-          authors: "Davis, K.",
-          year: "2020",
-          status: "incorrect",
-          explanation: "Author name does not match the publication",
-        },
-      ]);
+    if (verificationResults) {
+      setResults(verificationResults.map((vr: any) => ({
+        id: String(vr.id),
+        number: vr.footnoteNumber,
+        article: vr.article || '',
+        authors: vr.authors || '',
+        year: vr.year || '',
+        status: vr.status,
+        explanation: vr.explanation,
+      })));
       setIsLoading(false);
-    }, 2000);
+    }
+  }, [verificationResults]);
 
-    return () => clearTimeout(timer);
-  }, []);
+  useEffect(() => {
+    // If no document ID, show empty state
+    if (!documentId) {
+      setIsLoading(false);
+    }
+  }, [documentId]);
 
   if (!isAuthenticated) {
     setLocation("/");

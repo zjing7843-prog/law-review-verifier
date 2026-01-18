@@ -45,6 +45,22 @@ export const appRouter = router({
         return await db.getDocumentById(input.id);
       }),
     
+    getFootnotes: protectedProcedure
+      .input(z.object({
+        documentId: z.number(),
+      }))
+      .query(async ({ input }) => {
+        return await db.getFootnotesByDocumentId(input.documentId);
+      }),
+    
+    getVerificationResults: protectedProcedure
+      .input(z.object({
+        documentId: z.number(),
+      }))
+      .query(async ({ input }) => {
+        return await db.getVerificationResultsByDocumentId(input.documentId);
+      }),
+    
     extractFootnotes: protectedProcedure
       .input(z.object({
         documentId: z.number(),
