@@ -1,5 +1,7 @@
 import mammoth from 'mammoth';
 import axios from 'axios';
+import JSZip from 'jszip';
+import { parseStringPromise } from 'xml2js';
 
 // pdf-parse import - using require to avoid module resolution issues
 const pdfParse = require('pdf-parse');
@@ -27,14 +29,91 @@ export async function extractPdfText(buffer: Buffer): Promise<string> {
 
 /**
  * Extract text from DOCX buffer
+ * Prioritizes extracting actual Word footnotes from footnotes.xml
  */
 export async function extractDocxText(buffer: Buffer): Promise<string> {
   try {
+    // First, try to extract footnotes from the DOCX XML structure
+    const footnoteText = await extractDocxFootnotes(buffer);
+    
+    if (footnoteText) {
+      console.log('[extractDocxText] Successfully extracted footnotes from Word structure');
+      return footnoteText;
+    }
+    
+    // Fallback to full text extraction
+    console.log('[extractDocxText] No footnotes found in Word structure, using full text extraction');
     const result = await mammoth.extractRawText({ buffer });
     return result.value;
   } catch (error) {
     console.error('Error extracting DOCX text:', error);
     throw new Error('Failed to extract text from DOCX');
+  }
+}
+
+/**
+ * Extract footnotes specifically from Word's footnotes.xml
+ */
+async function extractDocxFootnotes(buffer: Buffer): Promise<string | null> {
+  try {
+    const zip = await JSZip.loadAsync(buffer);
+    const footnotesXml = zip.file('word/footnotes.xml');
+    
+    if (!footnotesXml) {
+      console.log('[extractDocxFootnotes] No footnotes.xml found in document');
+      return null;
+    }
+    
+    const xmlContent = await footnotesXml.async('text');
+    const parsed = await parseStringPromise(xmlContent);
+    
+    // Extract text from footnote elements
+    const footnotes = parsed['w:footnotes']?.['w:footnote'] || [];
+    const footnoteTexts: string[] = [];
+    
+    for (const footnote of footnotes) {
+      const footnoteId = footnote.$?.['w:id'];
+      
+      // Skip special footnotes (separator, continuation separator)
+      const type = footnote.$?.['w:type'];
+      if (type === 'separator' || type === 'continuationSeparator') {
+        continue;
+      }
+      
+      // Extract text from paragraphs within the footnote
+      const paragraphs = footnote['w:p'] || [];
+      const texts: string[] = [];
+      
+      for (const para of paragraphs) {
+        const runs = para['w:r'] || [];
+        for (const run of runs) {
+          const textElements = run['w:t'] || [];
+          for (const textEl of textElements) {
+            if (typeof textEl === 'string') {
+              texts.push(textEl);
+            } else if (textEl._) {
+              texts.push(textEl._);
+            }
+          }
+        }
+      }
+      
+      const footnoteText = texts.join(' ').trim();
+      if (footnoteText) {
+        // Add the footnote with its number
+        footnoteTexts.push(`${footnoteId} ${footnoteText}`);
+      }
+    }
+    
+    if (footnoteTexts.length > 0) {
+      console.log(`[extractDocxFootnotes] Extracted ${footnoteTexts.length} footnotes from Word structure`);
+      return footnoteTexts.join('\n');
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('[extractDocxFootnotes] Error parsing footnotes.xml:', error);
+    return null;
   }
 }
 

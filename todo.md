@@ -77,3 +77,11 @@
 - [x] Handle footnotes distributed across multiple pages
 - [x] Add debug logging to diagnose extraction issues
 - [ ] Test with actual Word document to verify 58 footnotes are extracted
+
+
+## Critical Fix: Parse Word Footnotes Properly
+- [x] Parse DOCX XML structure to access footnotes.xml
+- [x] Extract only content from Word's footnote elements (below the line)
+- [x] Ignore numbered text in main document body
+- [x] Handle footnotes across multiple pages from XML structure
+- [ ] Test with actual 58-footnote document to verify correct extraction
