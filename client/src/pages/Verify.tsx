@@ -7,12 +7,13 @@ import { CheckCircle2, AlertCircle, HelpCircle, Download, Loader2, ArrowRight } 
 import { useLocation } from "wouter";
 import { toast } from "sonner";
 
+type CitationCategory = "case" | "article" | "other";
+
 interface Citation {
   id: string;
   number: string;
-  article: string;
-  authors: string;
-  year: string;
+  category: CitationCategory;
+  fullText: string;
 }
 
 interface VerificationResult extends Citation {
@@ -60,7 +61,7 @@ export default function Verify() {
         const rand = Math.random();
         const status = rand > 0.7 ? "correct" : rand > 0.4 ? "incorrect" : "unsure";
         const reason = status === "correct" ? "" : 
-                      status === "incorrect" ? "Could not verify author name or publication year" :
+                      status === "incorrect" ? "Could not verify citation details or find matching source" :
                       "Partial match found, manual verification recommended";
         
         results.push({
@@ -87,12 +88,11 @@ export default function Verify() {
     if (verificationResults.length === 0) return;
     
     // Create CSV
-    const headers = ["Number", "Article/Book", "Author(s)", "Year", "Status", "Reason"];
+    const headers = ["Number", "Category", "Full Citation", "Status", "Reason"];
     const rows = verificationResults.map((r) => [
       r.number,
-      r.article,
-      r.authors,
-      r.year,
+      r.category.toUpperCase(),
+      r.fullText,
       r.status.toUpperCase(),
       r.reason || "",
     ]);
@@ -102,8 +102,8 @@ export default function Verify() {
       ...rows.map((row) =>
         row
           .map((cell) =>
-            typeof cell === "string" && cell.includes(",")
-              ? `"${cell}"`
+            typeof cell === "string" && (cell.includes(",") || cell.includes('"'))
+              ? `"${cell.replace(/"/g, '""')}"`
               : cell
           )
           .join(",")
@@ -151,6 +151,17 @@ export default function Verify() {
     }
   };
 
+  const getCategoryBadge = (category: CitationCategory) => {
+    switch (category) {
+      case "case":
+        return <span className="px-2 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-medium">Case</span>;
+      case "article":
+        return <span className="px-2 py-1 rounded-full bg-green-100 text-green-700 text-xs font-medium">Article/Book</span>;
+      case "other":
+        return <span className="px-2 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-medium">Other</span>;
+    }
+  };
+
   const correctCount = verificationResults.filter((r) => r.status === "correct").length;
   const incorrectCount = verificationResults.filter((r) => r.status === "incorrect").length;
   const unsureCount = verificationResults.filter((r) => r.status === "unsure").length;
@@ -188,19 +199,17 @@ export default function Verify() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-20">Number</TableHead>
-                    <TableHead>Article/Book</TableHead>
-                    <TableHead>Author(s)</TableHead>
-                    <TableHead className="w-24">Year</TableHead>
+                    <TableHead className="w-16">No.</TableHead>
+                    <TableHead className="w-32">Category</TableHead>
+                    <TableHead>Full Citation</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {citations.map((citation) => (
                     <TableRow key={citation.id}>
                       <TableCell className="font-medium">{citation.number}</TableCell>
-                      <TableCell>{citation.article}</TableCell>
-                      <TableCell>{citation.authors}</TableCell>
-                      <TableCell>{citation.year}</TableCell>
+                      <TableCell>{getCategoryBadge(citation.category)}</TableCell>
+                      <TableCell className="text-sm">{citation.fullText}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -292,9 +301,8 @@ export default function Verify() {
                   <TableHeader>
                     <TableRow className="bg-slate-50 border-b border-slate-200">
                       <TableHead className="w-16 font-semibold text-slate-900">No.</TableHead>
-                      <TableHead className="font-semibold text-slate-900">Article/Book</TableHead>
-                      <TableHead className="font-semibold text-slate-900">Author(s)</TableHead>
-                      <TableHead className="w-24 font-semibold text-slate-900">Year</TableHead>
+                      <TableHead className="w-32 font-semibold text-slate-900">Category</TableHead>
+                      <TableHead className="font-semibold text-slate-900">Full Citation</TableHead>
                       <TableHead className="w-32 font-semibold text-slate-900">Status</TableHead>
                       <TableHead className="font-semibold text-slate-900">Reason</TableHead>
                     </TableRow>
@@ -305,14 +313,11 @@ export default function Verify() {
                         <TableCell className="py-4 text-slate-900 font-medium">
                           {result.number}
                         </TableCell>
-                        <TableCell className="py-4 text-slate-700">
-                          {result.article}
+                        <TableCell className="py-4">
+                          {getCategoryBadge(result.category)}
                         </TableCell>
-                        <TableCell className="py-4 text-slate-700">
-                          {result.authors}
-                        </TableCell>
-                        <TableCell className="py-4 text-slate-700">
-                          {result.year}
+                        <TableCell className="py-4 text-slate-700 text-sm">
+                          {result.fullText}
                         </TableCell>
                         <TableCell className="py-4">
                           {getStatusBadge(result.status)}

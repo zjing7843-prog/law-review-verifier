@@ -3,17 +3,19 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CheckCircle2, ArrowRight, Edit2, Save, X, Plus, Trash2 } from "lucide-react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
 
+type CitationCategory = "case" | "article" | "other";
+
 interface ParsedCitation {
   id: string;
   number: string;
-  article: string;
-  authors: string;
-  year: string;
+  category: CitationCategory;
+  fullText: string;
 }
 
 export default function Parse() {
@@ -41,6 +43,28 @@ export default function Parse() {
     setCitations(parsed);
   }, [isAuthenticated, setLocation]);
 
+  const detectCategory = (text: string): CitationCategory => {
+    const lowerText = text.toLowerCase();
+    
+    // Case detection: Look for case names (typically "v" or "v." between parties)
+    // Also look for court citations like "[2023] HKCFA" or "(2023) 1 HKC"
+    if (
+      /\sv\.?\s/i.test(text) || // "Smith v Jones" or "Smith v. Jones"
+      /\[\d{4}\]\s+[A-Z]+/i.test(text) || // "[2023] HKCFA"
+      /\(\d{4}\)\s+\d+\s+[A-Z]+/i.test(text) // "(2023) 1 HKC"
+    ) {
+      return "case";
+    }
+    
+    // Article/Book detection: Look for quotes (titles) and publication info
+    if (/'[^']+'/.test(text) || /"[^"]+"/.test(text)) {
+      return "article";
+    }
+    
+    // Default to other
+    return "other";
+  };
+
   const parseCitations = (text: string): ParsedCitation[] => {
     const lines = text.split('\n').filter(l => l.trim());
     const results: ParsedCitation[] = [];
@@ -51,24 +75,13 @@ export default function Parse() {
       const subCitations = line.split(';').map(s => s.trim()).filter(s => s);
 
       subCitations.forEach((citation, subIndex) => {
-        // Extract author (text before first comma or quote)
-        const authorMatch = citation.match(/^([^,']+)/);
-        const authors = authorMatch ? authorMatch[1].trim() : '';
-
-        // Extract title (text in single quotes)
-        const titleMatch = citation.match(/'([^']+)'/);
-        const article = titleMatch ? titleMatch[1] : '';
-
-        // Extract year (4 digits in parentheses)
-        const yearMatch = citation.match(/\((\d{4})\)/);
-        const year = yearMatch ? yearMatch[1] : '';
-
+        const category = detectCategory(citation);
+        
         results.push({
           id: `${lineIndex}-${subIndex}`,
           number: String(currentNumber),
-          article: article || citation.substring(0, 50),
-          authors,
-          year,
+          category,
+          fullText: citation,
         });
         
         currentNumber++;
@@ -105,9 +118,8 @@ export default function Parse() {
     const newCitation: ParsedCitation = {
       id: `new-${Date.now()}`,
       number: String(citations.length + 1),
-      article: '',
-      authors: '',
-      year: '',
+      category: "other",
+      fullText: '',
     };
     setCitations([...citations, newCitation]);
     handleEdit(newCitation);
@@ -122,6 +134,29 @@ export default function Parse() {
     sessionStorage.setItem('parsedCitations', JSON.stringify(citations));
     setLocation("/verify");
   };
+
+  const getCategoryLabel = (category: CitationCategory) => {
+    switch (category) {
+      case "case": return "Case";
+      case "article": return "Article/Book Chapter";
+      case "other": return "Other";
+    }
+  };
+
+  const getCategoryBadge = (category: CitationCategory) => {
+    switch (category) {
+      case "case":
+        return <span className="px-2 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-medium">Case</span>;
+      case "article":
+        return <span className="px-2 py-1 rounded-full bg-green-100 text-green-700 text-xs font-medium">Article/Book</span>;
+      case "other":
+        return <span className="px-2 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-medium">Other</span>;
+    }
+  };
+
+  const caseCount = citations.filter(c => c.category === "case").length;
+  const articleCount = citations.filter(c => c.category === "article").length;
+  const otherCount = citations.filter(c => c.category === "other").length;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50">
@@ -141,15 +176,40 @@ export default function Parse() {
       <div className="container max-w-6xl mx-auto px-4 py-16">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-slate-900 mb-2">Review Parsed Citations</h1>
-          <p className="text-slate-600">Step 2 of 3: Review and edit the parsed citations before verification</p>
+          <p className="text-slate-600">Step 2 of 3: Review categories and edit citations before verification</p>
+        </div>
+
+        {/* Statistics */}
+        <div className="grid md:grid-cols-4 gap-4 mb-6">
+          <Card className="p-4 border border-slate-200">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-slate-900 mb-1">{citations.length}</div>
+              <p className="text-xs text-slate-600">Total Citations</p>
+            </div>
+          </Card>
+          <Card className="p-4 border border-blue-200 bg-blue-50">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-600 mb-1">{caseCount}</div>
+              <p className="text-xs text-slate-600">Cases</p>
+            </div>
+          </Card>
+          <Card className="p-4 border border-green-200 bg-green-50">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600 mb-1">{articleCount}</div>
+              <p className="text-xs text-slate-600">Articles/Books</p>
+            </div>
+          </Card>
+          <Card className="p-4 border border-slate-200 bg-slate-50">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-slate-600 mb-1">{otherCount}</div>
+              <p className="text-xs text-slate-600">Others</p>
+            </div>
+          </Card>
         </div>
 
         {/* Table */}
         <Card className="p-6 shadow-lg">
-          <div className="mb-4 flex items-center justify-between">
-            <div className="text-sm text-slate-600">
-              {citations.length} citations found
-            </div>
+          <div className="mb-4 flex items-center justify-end">
             <Button onClick={handleAdd} variant="outline" size="sm" className="gap-2">
               <Plus className="w-4 h-4" />
               Add Citation
@@ -160,10 +220,9 @@ export default function Parse() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-20">Number</TableHead>
-                  <TableHead>Article/Book</TableHead>
-                  <TableHead>Author(s)</TableHead>
-                  <TableHead className="w-24">Year</TableHead>
+                  <TableHead className="w-16">No.</TableHead>
+                  <TableHead className="w-40">Category</TableHead>
+                  <TableHead>Full Citation</TableHead>
                   <TableHead className="w-32">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -180,23 +239,24 @@ export default function Parse() {
                           />
                         </TableCell>
                         <TableCell>
-                          <Input
-                            value={editValues.article}
-                            onChange={(e) => setEditValues({ ...editValues, article: e.target.value })}
-                            className="w-full"
-                          />
+                          <Select
+                            value={editValues.category}
+                            onValueChange={(value: CitationCategory) => setEditValues({ ...editValues, category: value })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="case">Case</SelectItem>
+                              <SelectItem value="article">Article/Book Chapter</SelectItem>
+                              <SelectItem value="other">Other</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </TableCell>
                         <TableCell>
                           <Input
-                            value={editValues.authors}
-                            onChange={(e) => setEditValues({ ...editValues, authors: e.target.value })}
-                            className="w-full"
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Input
-                            value={editValues.year}
-                            onChange={(e) => setEditValues({ ...editValues, year: e.target.value })}
+                            value={editValues.fullText}
+                            onChange={(e) => setEditValues({ ...editValues, fullText: e.target.value })}
                             className="w-full"
                           />
                         </TableCell>
@@ -214,9 +274,8 @@ export default function Parse() {
                     ) : (
                       <>
                         <TableCell className="font-medium">{citation.number}</TableCell>
-                        <TableCell>{citation.article}</TableCell>
-                        <TableCell>{citation.authors}</TableCell>
-                        <TableCell>{citation.year}</TableCell>
+                        <TableCell>{getCategoryBadge(citation.category)}</TableCell>
+                        <TableCell className="text-sm">{citation.fullText}</TableCell>
                         <TableCell>
                           <div className="flex gap-1">
                             <Button onClick={() => handleEdit(citation)} size="sm" variant="ghost" className="h-8 w-8 p-0">

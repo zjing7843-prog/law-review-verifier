@@ -52,3 +52,12 @@
 - [x] Parse each line as a complete citation
 - [x] Handle semicolon-separated citations within each line
 - [x] Update placeholder text to show unnumbered format
+
+
+## Simplify: Category-Based Parsing
+- [x] Remove field extraction (author, year, article, etc.)
+- [x] Implement category detection: Cases, Article/Book Chapter, Others
+- [x] Update table to show: Number, Category, Full Citation
+- [x] Allow users to change category via dropdown
+- [x] Keep citation text as-is without parsing
+- [x] Update verification to work with full citation text
