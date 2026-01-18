@@ -2,9 +2,7 @@ import mammoth from 'mammoth';
 import axios from 'axios';
 import JSZip from 'jszip';
 import { parseStringPromise } from 'xml2js';
-
-// pdf-parse import - using require to avoid module resolution issues
-const pdfParse = require('pdf-parse');
+import * as pdfParse from 'pdf-parse';
 
 export interface ExtractedFootnote {
   number: number;
@@ -19,7 +17,8 @@ export interface ExtractedFootnote {
  */
 export async function extractPdfText(buffer: Buffer): Promise<string> {
   try {
-    const data = await pdfParse(buffer);
+    // @ts-ignore - pdf-parse has module resolution issues
+    const data = await (pdfParse as any)(buffer);
     return data.text;
   } catch (error) {
     console.error('Error extracting PDF text:', error);
@@ -56,27 +55,44 @@ export async function extractDocxText(buffer: Buffer): Promise<string> {
  */
 async function extractDocxFootnotes(buffer: Buffer): Promise<string | null> {
   try {
+    console.log('[extractDocxFootnotes] Starting DOCX footnote extraction...');
     const zip = await JSZip.loadAsync(buffer);
+    
+    // List all files in the ZIP to see what's available
+    const fileList = Object.keys(zip.files);
+    console.log('[extractDocxFootnotes] Files in DOCX:', fileList.filter(f => f.includes('footnote')));
+    
     const footnotesXml = zip.file('word/footnotes.xml');
     
     if (!footnotesXml) {
       console.log('[extractDocxFootnotes] No footnotes.xml found in document');
+      console.log('[extractDocxFootnotes] Available word/ files:', fileList.filter(f => f.startsWith('word/')));
       return null;
     }
     
+    console.log('[extractDocxFootnotes] Found footnotes.xml, parsing...');
+    
     const xmlContent = await footnotesXml.async('text');
+    console.log('[extractDocxFootnotes] XML content length:', xmlContent.length);
+    console.log('[extractDocxFootnotes] First 500 chars:', xmlContent.substring(0, 500));
+    
     const parsed = await parseStringPromise(xmlContent);
+    console.log('[extractDocxFootnotes] Parsed XML keys:', Object.keys(parsed));
     
     // Extract text from footnote elements
     const footnotes = parsed['w:footnotes']?.['w:footnote'] || [];
+    console.log('[extractDocxFootnotes] Found', footnotes.length, 'footnote elements in XML');
     const footnoteTexts: string[] = [];
     
     for (const footnote of footnotes) {
       const footnoteId = footnote.$?.['w:id'];
+      const type = footnote.$?.['w:type'];
+      
+      console.log(`[extractDocxFootnotes] Processing footnote ${footnoteId}, type: ${type}`);
       
       // Skip special footnotes (separator, continuation separator)
-      const type = footnote.$?.['w:type'];
       if (type === 'separator' || type === 'continuationSeparator') {
+        console.log(`[extractDocxFootnotes] Skipping separator footnote ${footnoteId}`);
         continue;
       }
       

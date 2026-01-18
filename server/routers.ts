@@ -4,6 +4,7 @@ import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import * as db from "./db";
+import { downloadFile, extractDocxText, extractPdfText, extractFootnotes } from "./documentProcessor";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -49,8 +50,45 @@ export const appRouter = router({
         documentId: z.number(),
       }))
       .mutation(async ({ input }) => {
-        // This will be implemented with actual extraction logic
-        return { success: true, footnotes: [] };
+        // Get document from database
+        const document = await db.getDocumentById(input.documentId);
+        if (!document) {
+          throw new Error('Document not found');
+        }
+        
+        // Download file
+        const buffer = await downloadFile(document.fileUrl);
+        
+        // Extract text based on file type
+        let text = '';
+        if (document.fileType === 'pdf') {
+          text = await extractPdfText(buffer);
+        } else {
+          text = await extractDocxText(buffer);
+        }
+        
+        // Extract footnotes
+        const footnotes = extractFootnotes(text);
+        
+        // Save footnotes to database
+        const footnoteData = footnotes.map(fn => ({
+          documentId: document.id,
+          number: fn.number,
+          text: fn.text,
+          article: fn.article,
+          authors: fn.authors,
+          year: fn.year,
+        }));
+        await db.createFootnotes(footnoteData);
+        
+        // Update document status
+        await db.updateDocumentStatus(document.id, 'extracted');
+        
+        return { 
+          success: true, 
+          footnoteCount: footnotes.length,
+          footnotes 
+        };
       }),
   }),
 });
