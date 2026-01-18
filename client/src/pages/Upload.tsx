@@ -15,10 +15,13 @@ export default function Upload() {
   const [file, setFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isExtracting, setIsExtracting] = useState(false);
   const [footnoteCount, setFootnoteCount] = useState<number | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [documentId, setDocumentId] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const uploadMutation = trpc.documents.upload.useMutation();
+  const extractMutation = trpc.documents.extractFootnotes.useMutation();
 
   if (!isAuthenticated) {
     setLocation("/");
@@ -70,35 +73,56 @@ export default function Upload() {
 
     setIsUploading(true);
     try {
-      // In a real implementation, you would upload to S3 first
-      // For now, we'll create a mock file URL
-      const fileUrl = URL.createObjectURL(file);
+      // First, upload file to storage (S3)
+      const formData = new FormData();
+      formData.append('file', file);
       
+      // Upload to a temporary storage endpoint
+      const uploadResponse = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!uploadResponse.ok) {
+        throw new Error('Failed to upload file');
+      }
+      
+      const { fileUrl } = await uploadResponse.json();
+      
+      // Create document record in database
       const result = await uploadMutation.mutateAsync({
         fileName: file.name,
         fileType: file.name.endsWith(".pdf") ? "pdf" : "docx",
         fileUrl: fileUrl,
       });
+      
+      const docId = result.id;
+      setDocumentId(docId);
 
       toast.success("Document uploaded successfully!");
+      
+      // Now extract footnotes
+      setIsExtracting(true);
+      const extractResult = await extractMutation.mutateAsync({
+        documentId: docId,
+      });
+      
+      setFootnoteCount(extractResult.footnoteCount);
       setShowConfirmDialog(true);
+      
     } catch (error) {
       toast.error("Failed to upload document. Please try again.");
       console.error(error);
     } finally {
       setIsUploading(false);
+      setIsExtracting(false);
     }
   };
 
   const handleConfirmFootnotes = () => {
-    if (footnoteCount === null || footnoteCount < 1) {
-      toast.error("Please enter a valid footnote count.");
-      return;
-    }
-    
     setShowConfirmDialog(false);
-    // Navigate to extraction page
-    setLocation("/extract");
+    // Navigate to extraction page with documentId
+    setLocation(`/extract?documentId=${documentId}`);
   };
 
   return (

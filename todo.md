@@ -113,3 +113,14 @@
 - [x] Added getFootnotes and getVerificationResults procedures
 - [x] Updated Extract.tsx to fetch real data from database
 - [x] Updated Verify.tsx to fetch real verification results
+
+
+## Critical: Fix Upload-to-Extraction Workflow
+- [x] Check Upload page - ensure it calls extractFootnotes after upload
+- [x] Verify extractFootnotes procedure is being triggered
+- [x] Ensure footnotes are saved to database
+- [x] Fix navigation to Extract page with correct documentId
+- [x] Add proper error handling and loading states
+- [x] Created file upload endpoint with multer and S3 integration
+- [x] Updated Upload page to call extraction after upload completes
+- [x] Pass documentId via URL query parameter to Extract page

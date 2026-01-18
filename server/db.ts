@@ -105,7 +105,9 @@ export async function createDocument(data: InsertDocument) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   const result = await db.insert(documents).values(data);
-  return result;
+  // Get the inserted document ID
+  const insertedId = Number(result[0].insertId);
+  return { id: insertedId, ...result };
 }
 
 export async function getDocumentById(id: number) {
