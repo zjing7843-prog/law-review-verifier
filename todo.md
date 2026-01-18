@@ -68,3 +68,12 @@
 - [x] Update table display to show multiple rows per footnote number
 - [x] Update validation logic to handle repeated footnote numbers
 - [x] Add comprehensive tests for citation splitting
+
+
+## Bug Fix: Word Footnote Extraction
+- [x] Handle Word's built-in footnote format (smaller font at page bottom)
+- [x] Extract footnotes from continuous text stream without font size info
+- [x] Improve pattern matching to find all numbered citations (1-58+)
+- [x] Handle footnotes distributed across multiple pages
+- [x] Add debug logging to diagnose extraction issues
+- [ ] Test with actual Word document to verify 58 footnotes are extracted

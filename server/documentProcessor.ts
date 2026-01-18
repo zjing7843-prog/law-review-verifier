@@ -56,117 +56,125 @@ export async function downloadFile(url: string): Promise<Buffer> {
 
 /**
  * Extract footnotes from document text
- * Handles legal citation format with multiple citations per footnote
+ * Handles Word footnotes (smaller font at page bottom) and legal citation format
  */
 export function extractFootnotes(text: string): ExtractedFootnote[] {
   const footnotes: ExtractedFootnote[] = [];
   
-  // Pattern to match footnote numbers at the start of a line or after whitespace
-  // Matches: "1 ", "1. ", "1) ", or superscript numbers
-  const footnotePattern = /(?:^|\n)\s*(\d+)\s*[\.\)]?\s+([^\n]+(?:\n(?!\s*\d+\s*[\.\)]?\s+)[^\n]+)*)/g;
+  // Debug: log text length to help diagnose issues
+  console.log(`[extractFootnotes] Processing text of length: ${text.length}`);
+  
+  // More aggressive pattern that finds ANY number followed by citation-like text
+  // This pattern looks for: number + optional punctuation + space + text with year pattern
+  // Pattern matches: "1 Author, 'Title' (2023)" or "1. Citation text" or "1) Text"
+  const footnotePattern = /(^|\n|\s)(\d+)\s*[\.\)]?\s+([^\n]+?)(?=(?:\n\s*\d+\s*[\.\)]?\s+|$))/g;
   
   let match;
+  const rawMatches: Array<{ number: number; text: string }> = [];
+  
   while ((match = footnotePattern.exec(text)) !== null) {
-    const number = parseInt(match[1], 10);
-    const footnoteText = match[2].trim();
+    const number = parseInt(match[2], 10);
+    const footnoteText = match[3].trim();
     
-    // Split by semicolon to handle multiple citations in one footnote
-    const citations = footnoteText.split(';').map(c => c.trim()).filter(c => c.length > 0);
-    
-    // Create separate entries for each citation, but keep the same footnote number
-    if (citations.length > 1) {
-      // Multiple citations in one footnote - split them
-      for (const citation of citations) {
-        const parsed = parseFootnoteText(citation);
-        footnotes.push({
-          number,
-          text: citation,
-          ...parsed,
-        });
-      }
-    } else {
-      // Single citation
-      const parsed = parseFootnoteText(footnoteText);
-      footnotes.push({
-        number,
-        text: footnoteText,
-        ...parsed,
-      });
+    // Only include if it looks like a citation (has year or quotes or author-like pattern)
+    // Reduced length requirement to catch shorter citations
+    if (footnoteText.length > 10 && (footnoteText.includes('(') || footnoteText.includes("'") || footnoteText.includes(',') || /\d{4}/.test(footnoteText))) {
+      rawMatches.push({ number, text: footnoteText });
     }
   }
   
-  // If no footnotes found with the above pattern, try a more aggressive approach
-  if (footnotes.length === 0) {
-    // Try to find footnotes in a continuous block
-    const lines = text.split('\n');
-    let currentFootnote: { number: number; text: string } | null = null;
-    
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (!trimmed) continue;
-      
-      // Check if line starts with a number
-      const startMatch = trimmed.match(/^(\d+)\s*[\.\)]?\s+(.+)$/);
-      if (startMatch) {
-        // Save previous footnote if exists
-        if (currentFootnote) {
-          // Split by semicolon for multiple citations
-          const citations = currentFootnote.text.split(';').map(c => c.trim()).filter(c => c.length > 0);
-          
-          if (citations.length > 1) {
-            for (const citation of citations) {
-              const parsed = parseFootnoteText(citation);
-              footnotes.push({
-                number: currentFootnote.number,
-                text: citation,
-                ...parsed,
-              });
-            }
-          } else {
-            const parsed = parseFootnoteText(currentFootnote.text);
-            footnotes.push({
-              number: currentFootnote.number,
-              text: currentFootnote.text,
-              ...parsed,
-            });
-          }
-        }
-        
-        // Start new footnote
-        currentFootnote = {
-          number: parseInt(startMatch[1], 10),
-          text: startMatch[2].trim(),
-        };
-      } else if (currentFootnote) {
-        // Continue current footnote (shouldn't happen if footnotes are on single lines)
-        currentFootnote.text += ' ' + trimmed;
-      }
-    }
-    
-    // Don't forget the last footnote
-    if (currentFootnote) {
-      const citations = currentFootnote.text.split(';').map(c => c.trim()).filter(c => c.length > 0);
+  // If we found matches, process them
+  console.log(`[extractFootnotes] Regex found ${rawMatches.length} potential footnotes`);
+  
+  if (rawMatches.length > 0) {
+    for (const match of rawMatches) {
+      const citations = match.text.split(';').map(c => c.trim()).filter(c => c.length > 0);
       
       if (citations.length > 1) {
         for (const citation of citations) {
           const parsed = parseFootnoteText(citation);
           footnotes.push({
-            number: currentFootnote.number,
+            number: match.number,
             text: citation,
             ...parsed,
           });
         }
       } else {
-        const parsed = parseFootnoteText(currentFootnote.text);
+        const parsed = parseFootnoteText(match.text);
         footnotes.push({
-          number: currentFootnote.number,
-          text: currentFootnote.text,
+          number: match.number,
+          text: match.text,
           ...parsed,
         });
       }
     }
   }
   
+  // Fallback: line-by-line scanning for numbered citations
+  // Use this if we found very few matches with the regex
+  console.log(`[extractFootnotes] After regex: ${footnotes.length} footnotes. Using fallback if < 5`);
+  
+  if (footnotes.length < 5) {
+    footnotes.length = 0; // Clear and start fresh with fallback method
+    console.log('[extractFootnotes] Using fallback line-by-line method');
+    
+    const lines = text.split('\n');
+    
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+      
+      // Match line starting with number
+      const match = line.match(/^(\d+)\s*[\.\)]?\s+(.+)$/);
+      if (match) {
+        const number = parseInt(match[1], 10);
+        let footnoteText = match[2].trim();
+        
+        // Look ahead to see if next lines continue this footnote (no new number)
+        let j = i + 1;
+        while (j < lines.length) {
+          const nextLine = lines[j].trim();
+          if (!nextLine) {
+            j++;
+            continue;
+          }
+          // If next line starts with a number, stop
+          if (/^\d+\s*[\.\)]?\s+/.test(nextLine)) {
+            break;
+          }
+          // Otherwise, append to current footnote
+          footnoteText += ' ' + nextLine;
+          j++;
+        }
+        
+        // Skip lines we've consumed
+        i = j - 1;
+        
+        // Process the footnote
+        const citations = footnoteText.split(';').map(c => c.trim()).filter(c => c.length > 0);
+        
+        if (citations.length > 1) {
+          for (const citation of citations) {
+            const parsed = parseFootnoteText(citation);
+            footnotes.push({
+              number,
+              text: citation,
+              ...parsed,
+            });
+          }
+        } else {
+          const parsed = parseFootnoteText(footnoteText);
+          footnotes.push({
+            number,
+            text: footnoteText,
+            ...parsed,
+          });
+        }
+      }
+    }
+  }
+  
+  console.log(`[extractFootnotes] Final result: ${footnotes.length} footnotes extracted`);
   return footnotes;
 }
 
