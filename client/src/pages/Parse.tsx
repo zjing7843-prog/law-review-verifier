@@ -44,17 +44,11 @@ export default function Parse() {
   const parseCitations = (text: string): ParsedCitation[] => {
     const lines = text.split('\n').filter(l => l.trim());
     const results: ParsedCitation[] = [];
+    let currentNumber = 1;
 
-    lines.forEach((line, index) => {
-      // Match footnote number at start
-      const numberMatch = line.match(/^(\d+)\s+/);
-      if (!numberMatch) return;
-
-      const number = numberMatch[1];
-      const content = line.substring(numberMatch[0].length);
-
-      // Split by semicolon for multiple citations
-      const subCitations = content.split(';').map(s => s.trim()).filter(s => s);
+    lines.forEach((line, lineIndex) => {
+      // Split by semicolon for multiple citations within one line
+      const subCitations = line.split(';').map(s => s.trim()).filter(s => s);
 
       subCitations.forEach((citation, subIndex) => {
         // Extract author (text before first comma or quote)
@@ -70,12 +64,14 @@ export default function Parse() {
         const year = yearMatch ? yearMatch[1] : '';
 
         results.push({
-          id: `${index}-${subIndex}`,
-          number,
+          id: `${lineIndex}-${subIndex}`,
+          number: String(currentNumber),
           article: article || citation.substring(0, 50),
           authors,
           year,
         });
+        
+        currentNumber++;
       });
     });
 

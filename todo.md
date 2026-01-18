@@ -45,3 +45,10 @@
 - [x] Test web search validation
 - [x] Validate CSV export functionality
 - [x] Create checkpoint and deliver
+
+## Fix: Update Parser for Unnumbered Citations
+- [x] Remove footnote number extraction logic
+- [x] Auto-number citations sequentially based on line order (1, 2, 3...)
+- [x] Parse each line as a complete citation
+- [x] Handle semicolon-separated citations within each line
+- [x] Update placeholder text to show unnumbered format

@@ -73,12 +73,12 @@ export default function Home() {
               Paste Your Citations
             </label>
             <p className="text-sm text-slate-500 mb-4">
-              Paste all your footnotes here. Each footnote should be numbered (e.g., "1 Author, 'Title' (Year)")
+              Paste all your footnotes here, one per line. We'll automatically number them for you.
             </p>
             <Textarea
               value={citations}
               onChange={(e) => setCitations(e.target.value)}
-              placeholder={"1 Gilberto KK Leung, 'Medical manslaughter in Hong Kong: what now?' (2023) Hong Kong Med J 4, 4; Oliver Quick, 'Medical manslaughter – time for a rethink?' (2017) 85 (4) Medico-Legal J 173, 174.\n2 Smith, J. and Johnson, M., 'The Role of Artificial Intelligence in Modern Law' (2023) Tech Law Review 45, 67.\n3 ..."}
+              placeholder="Gilberto KK Leung, 'Medical manslaughter in Hong Kong: what now?' (2023) Hong Kong Med J 4, 4; Oliver Quick, 'Medical manslaughter – time for a rethink?' (2017) 85 (4) Medico-Legal J 173, 174.&#10;Smith, J. and Johnson, M., 'The Role of Artificial Intelligence in Modern Law' (2023) Tech Law Review 45, 67.&#10;Williams, A., 'Digital Rights and Privacy Protection' (2022) Cyber Law Journal 12, 34.&#10;..."
               className="min-h-[400px] font-mono text-sm"
             />
           </div>
