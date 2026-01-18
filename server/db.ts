@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, users, documents, footnotes, verificationResults, InsertDocument, Footnote, InsertFootnote, InsertVerificationResult } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -89,4 +89,71 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+export async function getUserById(id: number) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get user: database not available");
+    return undefined;
+  }
+
+  const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
+
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function createDocument(data: InsertDocument) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(documents).values(data);
+  return result;
+}
+
+export async function getDocumentById(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.select().from(documents).where(eq(documents.id, id)).limit(1);
+  return result[0];
+}
+
+export async function updateDocumentStatus(id: number, status: string, extractedCount?: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const updateData: any = { status, updatedAt: new Date() };
+  if (extractedCount !== undefined) {
+    updateData.extractedFootnotes = extractedCount;
+  }
+  await db.update(documents).set(updateData).where(eq(documents.id, id));
+}
+
+export async function createFootnotes(data: InsertFootnote[]) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db.insert(footnotes).values(data);
+}
+
+export async function getFootnotesByDocumentId(documentId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db.select().from(footnotes).where(eq(footnotes.documentId, documentId));
+}
+
+export async function updateFootnote(id: number, data: Partial<Footnote>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(footnotes).set({ ...data, updatedAt: new Date() }).where(eq(footnotes.id, id));
+}
+
+export async function createVerificationResult(data: InsertVerificationResult) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db.insert(verificationResults).values(data);
+}
+
+export async function getVerificationResultsByDocumentId(documentId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db.select()
+    .from(verificationResults)
+    .innerJoin(footnotes, eq(verificationResults.footnoteId, footnotes.id))
+    .where(eq(footnotes.documentId, documentId));
+}

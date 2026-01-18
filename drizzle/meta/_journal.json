@@ -1,5 +1,20 @@
 {
   "version": "7",
   "dialect": "mysql",
-  "entries": []
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1768705616893,
+      "tag": "0000_opposite_wendigo",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1768705899582,
+      "tag": "0001_elite_triathlon",
+      "breakpoints": true
+    }
+  ]
 }
