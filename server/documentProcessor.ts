@@ -56,30 +56,74 @@ export async function downloadFile(url: string): Promise<Buffer> {
 
 /**
  * Extract footnotes from document text
- * Looks for numbered footnotes typically found at the bottom of pages
+ * Handles legal citation format with multiple citations per footnote
  */
 export function extractFootnotes(text: string): ExtractedFootnote[] {
   const footnotes: ExtractedFootnote[] = [];
   
-  // Split text into lines
-  const lines = text.split('\n');
+  // Pattern to match footnote numbers at the start of a line or after whitespace
+  // Matches: "1 ", "1. ", "1) ", or superscript numbers
+  const footnotePattern = /(?:^|\n)\s*(\d+)\s*[\.\)]?\s+([^\n]+(?:\n(?!\s*\d+\s*[\.\)]?\s+)[^\n]+)*)/g;
   
-  // Find lines that start with a number followed by a period or parenthesis
-  // Pattern: "1. " or "1) " or "1 " at the start of a line
-  const footnotePattern = /^(\d+)\s*[\.\)]\s+(.+)$/;
+  let match;
+  while ((match = footnotePattern.exec(text)) !== null) {
+    const number = parseInt(match[1], 10);
+    const footnoteText = match[2].trim();
+    
+    // Split by semicolon to handle multiple citations in one footnote
+    const citations = footnoteText.split(';').map(c => c.trim()).filter(c => c.length > 0);
+    
+    // For now, treat the entire footnote as one entry
+    // In the future, we could split into separate entries
+    const parsed = parseFootnoteText(footnoteText);
+    
+    footnotes.push({
+      number,
+      text: footnoteText,
+      ...parsed,
+    });
+  }
   
-  for (const line of lines) {
-    const match = line.trim().match(footnotePattern);
-    if (match) {
-      const number = parseInt(match[1], 10);
-      const text = match[2].trim();
+  // If no footnotes found with the above pattern, try a more aggressive approach
+  if (footnotes.length === 0) {
+    // Try to find footnotes in a continuous block
+    const lines = text.split('\n');
+    let currentFootnote: { number: number; text: string } | null = null;
+    
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed) continue;
       
-      // Try to parse the footnote text
-      const parsed = parseFootnoteText(text);
-      
+      // Check if line starts with a number
+      const startMatch = trimmed.match(/^(\d+)\s*[\.\)]?\s+(.+)$/);
+      if (startMatch) {
+        // Save previous footnote if exists
+        if (currentFootnote) {
+          const parsed = parseFootnoteText(currentFootnote.text);
+          footnotes.push({
+            number: currentFootnote.number,
+            text: currentFootnote.text,
+            ...parsed,
+          });
+        }
+        
+        // Start new footnote
+        currentFootnote = {
+          number: parseInt(startMatch[1], 10),
+          text: startMatch[2].trim(),
+        };
+      } else if (currentFootnote) {
+        // Continue current footnote
+        currentFootnote.text += ' ' + trimmed;
+      }
+    }
+    
+    // Don't forget the last footnote
+    if (currentFootnote) {
+      const parsed = parseFootnoteText(currentFootnote.text);
       footnotes.push({
-        number,
-        text,
+        number: currentFootnote.number,
+        text: currentFootnote.text,
         ...parsed,
       });
     }
@@ -90,32 +134,54 @@ export function extractFootnotes(text: string): ExtractedFootnote[] {
 
 /**
  * Parse footnote text to extract article, authors, and year
- * Handles various citation formats
+ * Handles legal citation format: Author, 'Title' (Year) Journal Page
  */
 function parseFootnoteText(text: string): Partial<ExtractedFootnote> {
   const result: Partial<ExtractedFootnote> = {};
   
-  // Pattern for year (4 digits in parentheses or after comma)
-  const yearMatch = text.match(/\((\d{4})\)|,\s*(\d{4})/);
+  // Extract year - look for (YYYY) pattern
+  const yearMatch = text.match(/\((\d{4})\)/);
   if (yearMatch) {
-    result.year = yearMatch[1] || yearMatch[2];
+    result.year = yearMatch[1];
   }
   
-  // Pattern for authors (usually before article title or after first comma)
-  // Look for names like "Smith, J." or "Smith and Jones"
-  const authorPattern = /^([A-Z][a-z]+(?:\s+(?:and|&)\s+[A-Z][a-z]+)*(?:,\s*[A-Z]\.)?)/;
-  const authorMatch = text.match(authorPattern);
+  // Extract article/book title - look for text in single quotes
+  const titleMatch = text.match(/['']([^'']+)['']/);
+  if (titleMatch) {
+    result.article = titleMatch[1].trim();
+  } else {
+    // If no quotes found, try to extract title between author and year
+    // Or between commas
+    const parts = text.split(',');
+    if (parts.length > 1) {
+      // Take the second part as potential title
+      result.article = parts[1].trim().replace(/['']([^'']+)['']/, '$1');
+    }
+  }
+  
+  // Extract authors - usually at the beginning before comma or quote
+  // Pattern: Name Name, or Name Name Name
+  const authorMatch = text.match(/^([^,'']+?)(?:,|[''])/); 
   if (authorMatch) {
     result.authors = authorMatch[1].trim();
+  } else {
+    // Fallback: take first part before comma
+    const firstComma = text.indexOf(',');
+    if (firstComma > 0) {
+      result.authors = text.substring(0, firstComma).trim();
+    }
   }
   
-  // Try to extract article/book title (usually in quotes or italics)
-  // For now, we'll take the text before the year or the whole text if no year
-  if (result.year) {
-    const beforeYear = text.substring(0, text.indexOf(result.year));
-    result.article = beforeYear.trim();
-  } else {
-    result.article = text;
+  // If no article title found yet, try to extract everything between quotes and year
+  if (!result.article && result.year) {
+    const beforeYear = text.substring(0, text.indexOf(`(${result.year})`));
+    // Remove author part
+    if (result.authors) {
+      const afterAuthor = beforeYear.substring(beforeYear.indexOf(result.authors) + result.authors.length);
+      result.article = afterAuthor.replace(/^[,\s]+/, '').replace(/['']([^'']+)['']/, '$1').trim();
+    } else {
+      result.article = beforeYear.trim();
+    }
   }
   
   return result;

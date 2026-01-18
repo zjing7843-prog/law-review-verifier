@@ -52,3 +52,11 @@
 ## Phase 8: Deployment
 - [ ] Final testing and bug fixes
 - [ ] Create checkpoint for deployment
+
+
+## Bug Fixes
+- [x] Fix footnote extraction to handle continuous paragraph format
+- [x] Support footnotes that span multiple lines
+- [x] Handle multiple citations within single footnote (semicolon-separated)
+- [x] Parse legal citation format: Author, 'Title' (Year) Journal Page
+- [x] Improve footnote boundary detection for dense text
