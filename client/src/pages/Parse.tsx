@@ -53,12 +53,12 @@ export default function Parse() {
     }
     
     // Case detection patterns:
-    // 1. Court citations: [2017] EWCA Crim 1168, [1994] 3 ALL E R 79
+    // 1. Court citations: [2017] EWCA Crim 1168, [1994] 3 ALL E R 79, [1995] 1 AC 171
     // 2. Party names with "v": R v Adomako, Smith v Jones
     // 3. Paragraph references: "at [56]"
     // 4. Case names ending with year in brackets or parentheses
     if (
-      /\[\d{4}\]\s+[A-Z]/i.test(text) || // "[2017] EWCA" or "[1994] 3 ALL"
+      /\[\d{4}\]/.test(text) || // Any [YYYY] format is likely a case citation
       /\b[A-Z][a-z]*\s+v\.?\s+[A-Z]/i.test(text) || // "R v Adomako" or "Smith v. Jones"
       /\bat\s+\[\d+\]/i.test(text) || // "at [56]"
       /\(\d{4}\)\s+\d+\s+[A-Z]{2,}/i.test(text) // "(2019) 22 HKCFAR"

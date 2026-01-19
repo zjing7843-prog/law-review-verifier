@@ -69,3 +69,4 @@
 - [x] Update other detection: Department names, URLs, government publications
 - [x] Add "ibid" handling to inherit category from previous citation
 - [x] Test with real legal citations provided by user
+- [x] Fix [YYYY] # pattern detection (e.g., [1995] 1 AC 171)
