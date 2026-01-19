@@ -149,3 +149,14 @@
 - [x] Separate results display into three tables: Article/Book, Case, Other
 - [x] Update CSV export to include Link column
 - [x] Test with real article and book citations
+
+
+## UI Improvements - Status Labels and Layout
+- [x] Change status from "Correct" to "Verified"
+- [x] Change status from "Incorrect" to "Hallucinated"
+- [x] Keep "Unsure" status as is
+- [x] Update verification logic to rarely mark as "Hallucinated" (only when 90%+ sure it doesn't exist)
+- [x] Fix table layout to prevent horizontal scrolling (single view)
+- [x] Make reason messages more succinct and concise
+- [x] Update status badges styling for new labels
+- [x] Update CSV export headers

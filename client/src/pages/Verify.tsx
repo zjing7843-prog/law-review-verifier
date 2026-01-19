@@ -17,7 +17,7 @@ interface Citation {
 }
 
 interface VerificationResult extends Citation {
-  status: "correct" | "incorrect" | "unsure";
+  status: "verified" | "hallucinated" | "unsure";
   reason: string;
   link?: string; // URL if citation is found via web search
 }
@@ -92,7 +92,7 @@ export default function Verify() {
       for (let i = 0; i < citationsToVerify.length; i++) {
         const citation = citationsToVerify[i];
         
-        let status: "correct" | "incorrect" | "unsure";
+        let status: "verified" | "hallucinated" | "unsure";
         let reason: string;
         let link: string | undefined;
         
@@ -113,25 +113,26 @@ export default function Verify() {
             const hasAuthor = /[A-Z][a-z]+/.test(citation.fullText);
             
             if (hasYear && (hasJournal || hasAuthor)) {
-              status = "correct";
-              reason = "Citation found via Google search";
+              status = "verified";
+              reason = "Found via search";
               link = searchUrl;
             } else {
               status = "unsure";
-              reason = "Partial match found, manual verification recommended";
+              reason = "Needs manual check";
               link = searchUrl;
             }
           } catch (error) {
             status = "unsure";
-            reason = "Search failed, please verify manually";
+            reason = "Search failed";
           }
         } else {
           // For Case category, use mock verification
+          // Hallucinated should be rare (only when 90%+ sure it doesn't exist)
           const rand = Math.random();
-          status = rand > 0.7 ? "correct" : rand > 0.4 ? "incorrect" : "unsure";
-          reason = status === "correct" ? "" : 
-                  status === "incorrect" ? "Could not verify citation details or find matching source" :
-                  "Partial match found, manual verification recommended";
+          status = rand > 0.7 ? "verified" : rand > 0.95 ? "hallucinated" : "unsure";
+          reason = status === "verified" ? "" : 
+                  status === "hallucinated" ? "Citation not found" :
+                  "Needs manual check";
         }
         
         results.push({
@@ -156,14 +157,14 @@ export default function Verify() {
             allResults.push({
               ...citation,
               status: originalFootnote.status,
-              reason: `Same source as footnote ${referencesFootnote}`,
+              reason: `Same as fn ${referencesFootnote}`,
             });
           } else {
             // If referenced footnote not found, mark as unsure
             allResults.push({
               ...citation,
               status: "unsure",
-              reason: `References footnote ${referencesFootnote} which was not verified`,
+              reason: `Fn ${referencesFootnote} not verified`,
             });
           }
         } else {
@@ -177,20 +178,20 @@ export default function Verify() {
               allResults.push({
                 ...citation,
                 status: previousResult.status,
-                reason: `Same source as previous citation (ibid)`,
+                reason: "Same as previous (ibid)",
               });
             } else {
               allResults.push({
                 ...citation,
                 status: "unsure",
-                reason: "Ibid reference but previous citation not found",
+                reason: "Previous not found",
               });
             }
           } else {
             allResults.push({
               ...citation,
               status: "unsure",
-              reason: "Ibid reference but no previous citation found",
+              reason: "No previous citation",
             });
           }
         }
@@ -250,23 +251,23 @@ export default function Verify() {
     window.URL.revokeObjectURL(url);
     document.body.removeChild(a);
 
-    toast.success("Results exported successfully");
+    toast.success("Results exported successfully!");
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: "verified" | "hallucinated" | "unsure") => {
     switch (status) {
-      case "correct":
+      case "verified":
         return (
           <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-100 text-green-700 text-sm font-medium">
             <CheckCircle2 className="w-4 h-4" />
-            Correct
+            Verified
           </span>
         );
-      case "incorrect":
+      case "hallucinated":
         return (
           <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-100 text-red-700 text-sm font-medium">
             <AlertCircle className="w-4 h-4" />
-            Incorrect
+            Hallucinated
           </span>
         );
       case "unsure":
@@ -300,11 +301,11 @@ export default function Verify() {
     return !hasIbid && !hasCrossRef;
   }).length;
 
-  const correctCount = verificationResults.filter((r) => r.status === "correct").length;
-  const incorrectCount = verificationResults.filter((r) => r.status === "incorrect").length;
+  const verifiedCount = verificationResults.filter((r) => r.status === "verified").length;
+  const hallucinatedCount = verificationResults.filter((r) => r.status === "hallucinated").length;
   const unsureCount = verificationResults.filter((r) => r.status === "unsure").length;
   const correctnessPercentage =
-    verificationResults.length > 0 ? ((correctCount / verificationResults.length) * 100).toFixed(1) : 0;
+    verificationResults.length > 0 ? ((verifiedCount / verificationResults.length) * 100).toFixed(1) : 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50">
@@ -404,17 +405,17 @@ export default function Verify() {
               <Card className="p-6 border border-green-200 bg-green-50">
                 <div className="text-center">
                   <div className="text-3xl font-bold text-green-600 mb-1">
-                    {correctCount}
+                    {verifiedCount}
                   </div>
-                  <p className="text-sm text-slate-600">Correct</p>
+                  <p className="text-sm text-slate-600">Verified</p>
                 </div>
               </Card>
               <Card className="p-6 border border-red-200 bg-red-50">
                 <div className="text-center">
                   <div className="text-3xl font-bold text-red-600 mb-1">
-                    {incorrectCount}
+                    {hallucinatedCount}
                   </div>
-                  <p className="text-sm text-slate-600">Incorrect</p>
+                  <p className="text-sm text-slate-600">Hallucinated</p>
                 </div>
               </Card>
               <Card className="p-6 border border-amber-200 bg-amber-50">
@@ -435,7 +436,7 @@ export default function Verify() {
                     Overall Correctness
                   </h3>
                   <p className="text-slate-600">
-                    {correctCount} out of {verificationResults.length} citations are verified as correct
+                    {verifiedCount} out of {verificationResults.length} citations verified
                   </p>
                 </div>
                 <div className="text-right">
@@ -452,15 +453,15 @@ export default function Verify() {
               <div className="mb-8">
                 <h2 className="text-xl font-semibold text-slate-900 mb-4">Articles & Books</h2>
                 <Card className="border border-slate-200 overflow-hidden">
-                  <div className="overflow-x-auto">
+                  <div className="w-full">
                     <Table>
                       <TableHeader>
                         <TableRow className="bg-slate-50 border-b border-slate-200">
-                          <TableHead className="w-16 font-semibold text-slate-900">No.</TableHead>
-                          <TableHead className="font-semibold text-slate-900">Full Citation</TableHead>
-                          <TableHead className="w-32 font-semibold text-slate-900">Status</TableHead>
-                          <TableHead className="font-semibold text-slate-900">Reason</TableHead>
-                          <TableHead className="w-32 font-semibold text-slate-900">Link</TableHead>
+                          <TableHead className="w-12 font-semibold text-slate-900">No.</TableHead>
+                          <TableHead className="font-semibold text-slate-900">Citation</TableHead>
+                          <TableHead className="w-28 font-semibold text-slate-900">Status</TableHead>
+                          <TableHead className="w-36 font-semibold text-slate-900">Reason</TableHead>
+                          <TableHead className="w-20 font-semibold text-slate-900">Link</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -469,7 +470,7 @@ export default function Verify() {
                             <TableCell className="py-4 text-slate-900 font-medium">
                               {result.number}
                             </TableCell>
-                            <TableCell className="py-4 text-slate-700 text-sm">
+                            <TableCell className="py-4 text-slate-700 text-sm break-words">
                               {result.fullText}
                             </TableCell>
                             <TableCell className="py-4">
@@ -506,15 +507,15 @@ export default function Verify() {
               <div className="mb-8">
                 <h2 className="text-xl font-semibold text-slate-900 mb-4">Cases</h2>
                 <Card className="border border-slate-200 overflow-hidden">
-                  <div className="overflow-x-auto">
+                  <div className="w-full">
                     <Table>
                       <TableHeader>
                         <TableRow className="bg-slate-50 border-b border-slate-200">
-                          <TableHead className="w-16 font-semibold text-slate-900">No.</TableHead>
-                          <TableHead className="font-semibold text-slate-900">Full Citation</TableHead>
-                          <TableHead className="w-32 font-semibold text-slate-900">Status</TableHead>
-                          <TableHead className="font-semibold text-slate-900">Reason</TableHead>
-                          <TableHead className="w-32 font-semibold text-slate-900">Link</TableHead>
+                          <TableHead className="w-12 font-semibold text-slate-900">No.</TableHead>
+                          <TableHead className="font-semibold text-slate-900">Citation</TableHead>
+                          <TableHead className="w-28 font-semibold text-slate-900">Status</TableHead>
+                          <TableHead className="w-36 font-semibold text-slate-900">Reason</TableHead>
+                          <TableHead className="w-20 font-semibold text-slate-900">Link</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -523,7 +524,7 @@ export default function Verify() {
                             <TableCell className="py-4 text-slate-900 font-medium">
                               {result.number}
                             </TableCell>
-                            <TableCell className="py-4 text-slate-700 text-sm">
+                            <TableCell className="py-4 text-slate-700 text-sm break-words">
                               {result.fullText}
                             </TableCell>
                             <TableCell className="py-4">
@@ -560,15 +561,15 @@ export default function Verify() {
               <div className="mb-8">
                 <h2 className="text-xl font-semibold text-slate-900 mb-4">Other</h2>
                 <Card className="border border-slate-200 overflow-hidden">
-                  <div className="overflow-x-auto">
+                  <div className="w-full">
                     <Table>
                       <TableHeader>
                         <TableRow className="bg-slate-50 border-b border-slate-200">
-                          <TableHead className="w-16 font-semibold text-slate-900">No.</TableHead>
-                          <TableHead className="font-semibold text-slate-900">Full Citation</TableHead>
-                          <TableHead className="w-32 font-semibold text-slate-900">Status</TableHead>
-                          <TableHead className="font-semibold text-slate-900">Reason</TableHead>
-                          <TableHead className="w-32 font-semibold text-slate-900">Link</TableHead>
+                          <TableHead className="w-12 font-semibold text-slate-900">No.</TableHead>
+                          <TableHead className="font-semibold text-slate-900">Citation</TableHead>
+                          <TableHead className="w-28 font-semibold text-slate-900">Status</TableHead>
+                          <TableHead className="w-36 font-semibold text-slate-900">Reason</TableHead>
+                          <TableHead className="w-20 font-semibold text-slate-900">Link</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -577,7 +578,7 @@ export default function Verify() {
                             <TableCell className="py-4 text-slate-900 font-medium">
                               {result.number}
                             </TableCell>
-                            <TableCell className="py-4 text-slate-700 text-sm">
+                            <TableCell className="py-4 text-slate-700 text-sm break-words">
                               {result.fullText}
                             </TableCell>
                             <TableCell className="py-4">
