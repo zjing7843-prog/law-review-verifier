@@ -26,13 +26,39 @@ export const appRouter = router({
       .input(z.object({
         citations: z.array(z.string())
       }))
-      .mutation(async ({ input }) => {
-        const results = await categorizeCitationsBatch(input.citations);
+      .mutation(async ({ ctx, input }) => {
+        // Pass userId if authenticated, otherwise use Manus LLM
+        const userId = ctx.user?.id;
+        const results = await categorizeCitationsBatch(input.citations, userId);
         return results.map((result, index) => ({
           citation: input.citations[index],
           category: result.category,
           confidence: result.confidence
         }));
+      }),
+  }),
+
+  llm: router({
+    getSettings: protectedProcedure
+      .query(async ({ ctx }) => {
+        const settings = await db.getLlmSettingByUserId(ctx.user.id);
+        return settings || { provider: "manus", apiKey: null, modelName: null };
+      }),
+    
+    saveSettings: protectedProcedure
+      .input(z.object({
+        provider: z.enum(["manus", "openai", "anthropic"]),
+        apiKey: z.string().optional(),
+        modelName: z.string().optional()
+      }))
+      .mutation(async ({ ctx, input }) => {
+        await db.upsertLlmSetting({
+          userId: ctx.user.id,
+          provider: input.provider,
+          apiKey: input.apiKey || null,
+          modelName: input.modelName || null
+        });
+        return { success: true };
       }),
   }),
 

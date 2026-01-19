@@ -3,7 +3,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { CheckCircle2, ArrowRight } from "lucide-react";
+import { CheckCircle2, ArrowRight, Settings } from "lucide-react";
 import { useLocation } from "wouter";
 import { getLoginUrl } from "@/const";
 
@@ -34,8 +34,12 @@ export default function Home() {
             </div>
             <span className="font-semibold text-slate-900">Law Review Verifier</span>
           </div>
-          <div className="text-sm text-slate-600">
-            Citation Verification Tool
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-slate-600">Citation Verification Tool</span>
+            <Button variant="ghost" size="sm" onClick={() => setLocation("/settings")}>
+              <Settings className="w-4 h-4 mr-2" />
+              Settings
+            </Button>
           </div>
         </div>
       </nav>

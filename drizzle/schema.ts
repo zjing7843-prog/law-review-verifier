@@ -70,3 +70,16 @@ export const verificationResults = mysqlTable("verificationResults", {
 
 export type VerificationResult = typeof verificationResults.$inferSelect;
 export type InsertVerificationResult = typeof verificationResults.$inferInsert;
+
+export const llmSettings = mysqlTable("llmSettings", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(), // One setting per user
+  provider: mysqlEnum("provider", ["manus", "openai", "anthropic"]).default("manus").notNull(),
+  apiKey: text("apiKey"), // Encrypted API key for custom providers
+  modelName: varchar("modelName", { length: 100 }), // e.g., "gpt-4", "claude-3-sonnet"
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type LlmSetting = typeof llmSettings.$inferSelect;
+export type InsertLlmSetting = typeof llmSettings.$inferInsert;

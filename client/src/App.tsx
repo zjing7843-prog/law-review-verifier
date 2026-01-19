@@ -10,6 +10,7 @@ import Upload from "./pages/Upload";
 import Extract from "./pages/Extract";
 import Verify from "./pages/Verify";
 import Results from "./pages/Results";
+import Settings from "./pages/Settings";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -21,6 +22,7 @@ function Router() {
       <Route path={"/extract"} component={Extract} />
       <Route path={"/verify"} component={Verify} />
       <Route path={"/results"} component={Results} />
+      <Route path={"/settings"} component={Settings} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

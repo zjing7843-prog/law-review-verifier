@@ -1,5 +1,6 @@
 import { invokeLLM } from "./_core/llm";
 import { z } from "zod";
+import * as db from "./db";
 
 export const CitationCategorySchema = z.enum(["case", "article", "other"]);
 export type CitationCategory = z.infer<typeof CitationCategorySchema>;
@@ -11,8 +12,21 @@ export interface CategorizationResult {
 
 /**
  * Categorize a single citation using LLM
+ * @param citation The citation text to categorize
+ * @param userId Optional user ID to load custom LLM settings
  */
-export async function categorizeCitation(citation: string): Promise<CategorizationResult> {
+export async function categorizeCitation(citation: string, userId?: number): Promise<CategorizationResult> {
+  // Load user LLM settings if userId provided
+  let llmSettings = null;
+  if (userId) {
+    llmSettings = await db.getLlmSettingByUserId(userId);
+  }
+  
+  // For now, always use Manus LLM (custom providers will be implemented later)
+  // TODO: Implement OpenAI and Anthropic API calls when llmSettings.provider !== 'manus'
+  if (llmSettings && llmSettings.provider !== 'manus') {
+    console.log(`[LLM] User ${userId} has custom provider ${llmSettings.provider}, but using Manus LLM for now`);
+  }
   const response = await invokeLLM({
     messages: [
       {
@@ -88,8 +102,10 @@ Do not include any explanation or additional text.`
 
 /**
  * Categorize multiple citations in batch
+ * @param citations Array of citation texts
+ * @param userId Optional user ID to load custom LLM settings
  */
-export async function categorizeCitationsBatch(citations: string[]): Promise<CategorizationResult[]> {
+export async function categorizeCitationsBatch(citations: string[], userId?: number): Promise<CategorizationResult[]> {
   // Process in parallel with a reasonable concurrency limit
   const BATCH_SIZE = 10;
   const results: CategorizationResult[] = [];
@@ -97,7 +113,7 @@ export async function categorizeCitationsBatch(citations: string[]): Promise<Cat
   for (let i = 0; i < citations.length; i += BATCH_SIZE) {
     const batch = citations.slice(i, i + BATCH_SIZE);
     const batchResults = await Promise.all(
-      batch.map(citation => categorizeCitation(citation))
+      batch.map(citation => categorizeCitation(citation, userId))
     );
     results.push(...batchResults);
   }

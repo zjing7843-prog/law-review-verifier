@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, documents, footnotes, verificationResults, InsertDocument, Footnote, InsertFootnote, InsertVerificationResult } from "../drizzle/schema";
+import { InsertUser, users, documents, footnotes, verificationResults, llmSettings, InsertDocument, Footnote, InsertFootnote, InsertVerificationResult, LlmSetting, InsertLlmSetting } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -158,4 +158,32 @@ export async function getVerificationResultsByDocumentId(documentId: number) {
     .from(verificationResults)
     .innerJoin(footnotes, eq(verificationResults.footnoteId, footnotes.id))
     .where(eq(footnotes.documentId, documentId));
+}
+
+// LLM Settings helpers
+export async function getLlmSettingByUserId(userId: number): Promise<LlmSetting | undefined> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.select().from(llmSettings).where(eq(llmSettings.userId, userId)).limit(1);
+  return result[0];
+}
+
+export async function upsertLlmSetting(data: InsertLlmSetting) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  // Check if setting exists for this user
+  const existing = await getLlmSettingByUserId(data.userId);
+  
+  if (existing) {
+    // Update existing setting
+    await db.update(llmSettings)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(llmSettings.userId, data.userId));
+    return { ...existing, ...data };
+  } else {
+    // Insert new setting
+    const result = await db.insert(llmSettings).values(data);
+    return { id: Number(result[0].insertId), ...data };
+  }
 }

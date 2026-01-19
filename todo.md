@@ -263,3 +263,15 @@
 - [x] Handle LLM errors gracefully with fallback
 - [x] Test with all previous examples to ensure accuracy (4/4 passed)
 - [x] Remove old regex-based detectCategory function
+
+
+## Add User-Configurable LLM API Settings
+- [x] Design database schema for storing LLM provider settings (provider type, API key, model name)
+- [x] Create settings page UI with LLM configuration form
+- [x] Add tRPC endpoints for saving/retrieving LLM settings
+- [x] Implement dual-mode categorization: Manus LLM (default) vs Custom API
+- [ ] Support OpenAI API format for custom LLM (infrastructure ready, API calls pending)
+- [ ] Support Anthropic API format for custom LLM (infrastructure ready, API calls pending)
+- [ ] Add validation and error handling for custom API keys
+- [x] Keep Manus LLM as default for testing/demo purposes
+- [x] Test Settings page UI and database integration
