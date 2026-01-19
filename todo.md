@@ -112,3 +112,14 @@
 - [x] Add "Back" button to Parse page (returns to Home)
 - [x] Add "Back" button to Verify page (returns to Parse)
 - [x] Test navigation flow works correctly
+
+
+## Implement Smart Verification Filtering
+- [x] Detect "ibid" citations (already inherit category, should skip verification)
+- [x] Detect cross-reference pattern "(n [number])" indicating repeat citation
+- [x] Extract the referenced footnote number from "(n X)" pattern
+- [x] Filter out repeat citations before verification (behind the scenes)
+- [x] Only verify first-time/unique citations
+- [x] Map verification results back to all instances of same source
+- [x] Update UI to show verification progress only for unique citations
+- [x] Test with examples: "Mak Wan Ling (n 7), at [34]" should reference footnote 7

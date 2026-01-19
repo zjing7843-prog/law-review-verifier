@@ -45,14 +45,49 @@ export default function Verify() {
     setCitations(parsed);
   }, [isAuthenticated, setLocation]);
 
+  // Helper function to detect if a citation is a repeat reference
+  const isRepeatCitation = (citation: Citation): { isRepeat: boolean; referencesFootnote?: string } => {
+    const text = citation.fullText.toLowerCase();
+    
+    // Check for "ibid" references
+    if (/\bibid\b/.test(text)) {
+      return { isRepeat: true };
+    }
+    
+    // Check for cross-reference pattern "(n [number])"
+    const crossRefMatch = citation.fullText.match(/\(n\s+(\d+)\)/);
+    if (crossRefMatch) {
+      return { isRepeat: true, referencesFootnote: crossRefMatch[1] };
+    }
+    
+    return { isRepeat: false };
+  };
+
   const handleVerify = async () => {
     setIsVerifying(true);
     try {
-      // Simulate verification process
+      // Step 1: Filter citations to identify unique ones that need verification
+      const citationsToVerify: Citation[] = [];
+      const repeatCitations: Map<string, { citation: Citation; referencesFootnote?: string }> = new Map();
+      
+      citations.forEach((citation) => {
+        const { isRepeat, referencesFootnote } = isRepeatCitation(citation);
+        if (isRepeat) {
+          repeatCitations.set(citation.id, { citation, referencesFootnote });
+        } else {
+          citationsToVerify.push(citation);
+        }
+      });
+      
+      console.log(`Total citations: ${citations.length}`);
+      console.log(`Unique citations to verify: ${citationsToVerify.length}`);
+      console.log(`Repeat citations (filtered out): ${repeatCitations.size}`);
+      
+      // Step 2: Verify only unique citations
       const results: VerificationResult[] = [];
       
-      for (let i = 0; i < citations.length; i++) {
-        const citation = citations[i];
+      for (let i = 0; i < citationsToVerify.length; i++) {
+        const citation = citationsToVerify[i];
         
         // Simulate web search delay
         await new Promise((resolve) => setTimeout(resolve, 500));
@@ -73,8 +108,66 @@ export default function Verify() {
         setVerificationResults([...results]);
       }
       
+      // Step 3: Map results back to repeat citations
+      // For repeat citations, inherit the verification status from the referenced footnote
+      const allResults = [...results];
+      
+      repeatCitations.forEach(({ citation, referencesFootnote }) => {
+        if (referencesFootnote) {
+          // Find the original footnote being referenced
+          const originalFootnote = allResults.find((r) => r.number === referencesFootnote);
+          if (originalFootnote) {
+            allResults.push({
+              ...citation,
+              status: originalFootnote.status,
+              reason: `Same source as footnote ${referencesFootnote}`,
+            });
+          } else {
+            // If referenced footnote not found, mark as unsure
+            allResults.push({
+              ...citation,
+              status: "unsure",
+              reason: `References footnote ${referencesFootnote} which was not verified`,
+            });
+          }
+        } else {
+          // For "ibid" references, inherit from previous citation in original order
+          // Find the citation immediately before this one
+          const currentIndex = citations.findIndex((c) => c.id === citation.id);
+          if (currentIndex > 0) {
+            const previousCitation = citations[currentIndex - 1];
+            const previousResult = allResults.find((r) => r.id === previousCitation.id);
+            if (previousResult) {
+              allResults.push({
+                ...citation,
+                status: previousResult.status,
+                reason: `Same source as previous citation (ibid)`,
+              });
+            } else {
+              allResults.push({
+                ...citation,
+                status: "unsure",
+                reason: "Ibid reference but previous citation not found",
+              });
+            }
+          } else {
+            allResults.push({
+              ...citation,
+              status: "unsure",
+              reason: "Ibid reference but no previous citation found",
+            });
+          }
+        }
+      });
+      
+      // Sort results by citation number to maintain original order
+      allResults.sort((a, b) => parseInt(a.number) - parseInt(b.number));
+      
+      // Update state with all results
+      setVerificationResults(allResults);
+      
       // Store results for later
-      sessionStorage.setItem('verificationResults', JSON.stringify(results));
+      sessionStorage.setItem('verificationResults', JSON.stringify(allResults));
       
       toast.success("Verification complete!");
     } catch (error) {
@@ -162,6 +255,14 @@ export default function Verify() {
     }
   };
 
+  // Calculate unique citations count (excluding ibid and cross-references)
+  const uniqueCitationsCount = citations.filter((citation) => {
+    const text = citation.fullText.toLowerCase();
+    const hasIbid = /\bibid\b/.test(text);
+    const hasCrossRef = /\(n\s+\d+\)/.test(citation.fullText);
+    return !hasIbid && !hasCrossRef;
+  }).length;
+
   const correctCount = verificationResults.filter((r) => r.status === "correct").length;
   const incorrectCount = verificationResults.filter((r) => r.status === "incorrect").length;
   const unsureCount = verificationResults.filter((r) => r.status === "unsure").length;
@@ -196,8 +297,15 @@ export default function Verify() {
 
         {verificationResults.length === 0 ? (
           <Card className="p-8 shadow-lg">
-            <div className="mb-4 text-sm text-slate-600">
-              {citations.length} citations to verify
+            <div className="mb-4 space-y-2">
+              <div className="text-sm text-slate-600">
+                {citations.length} total citations
+              </div>
+              {uniqueCitationsCount < citations.length && (
+                <div className="text-sm text-blue-600 font-medium">
+                  {uniqueCitationsCount} unique citations to verify ({citations.length - uniqueCitationsCount} repeat references will be auto-filled)
+                </div>
+              )}
             </div>
 
             <div className="border rounded-lg overflow-hidden mb-6">
@@ -231,7 +339,7 @@ export default function Verify() {
                 {isVerifying ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Verifying... ({verificationResults.length}/{citations.length})
+                    Verifying... ({verificationResults.length}/{uniqueCitationsCount} unique)
                   </>
                 ) : (
                   <>
