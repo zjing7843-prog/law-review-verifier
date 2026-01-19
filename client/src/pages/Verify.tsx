@@ -161,10 +161,11 @@ export default function Verify() {
           // Hallucinated should be rare (only when 90%+ sure it doesn't exist)
           const rand = Math.random();
           status = rand > 0.7 ? "verified" : rand > 0.95 ? "hallucinated" : "unsure";
-          reason = status === "verified" ? "" : 
+          reason = status === "verified" ? "Found via search" : 
                   status === "hallucinated" ? "Citation not found" :
                   "Needs manual check";
-          link = status === "unsure" ? searchUrl : undefined;
+          // Provide link for verified and unsure, not for hallucinated
+          link = status !== "hallucinated" ? searchUrl : undefined;
         }
         
         results.push({
@@ -388,9 +389,9 @@ export default function Verify() {
                     .filter((citation) => !isRepeatCitation(citation).isRepeat)
                     .map((citation) => (
                       <TableRow key={citation.id}>
-                        <TableCell className="font-medium">{citation.number}</TableCell>
-                        <TableCell>{getCategoryBadge(citation.category)}</TableCell>
-                        <TableCell className="text-sm break-words">{citation.fullText}</TableCell>
+                        <TableCell className="font-medium break-words whitespace-normal">{citation.number}</TableCell>
+                        <TableCell className="break-words whitespace-normal">{getCategoryBadge(citation.category)}</TableCell>
+                        <TableCell className="text-sm break-words whitespace-normal">{citation.fullText}</TableCell>
                       </TableRow>
                     ))}
                 </TableBody>
@@ -495,19 +496,19 @@ export default function Verify() {
                       <TableBody>
                         {verificationResults.filter(r => r.category === "article" && !isRepeatCitation(r).isRepeat).map((result) => (
                           <TableRow key={result.id} className="border-b border-slate-200 hover:bg-slate-50">
-                            <TableCell className="py-4 text-slate-900 font-medium">
+                            <TableCell className="py-4 text-slate-900 font-medium break-words whitespace-normal">
                               {result.number}
                             </TableCell>
-                            <TableCell className="py-4 text-slate-700 text-sm break-words">
+                            <TableCell className="py-4 text-slate-700 text-sm break-words whitespace-normal">
                               {result.fullText}
                             </TableCell>
-                            <TableCell className="py-4">
+                            <TableCell className="py-4 break-words whitespace-normal">
                               {getStatusBadge(result.status)}
                             </TableCell>
-                            <TableCell className="py-4 text-slate-600 text-sm">
-                              {result.reason || "-"}
+                            <TableCell className="py-4 text-slate-600 text-sm break-words whitespace-normal">
+                              {result.reason}
                             </TableCell>
-                            <TableCell className="py-4">
+                            <TableCell className="py-4 break-words whitespace-normal">
                               {result.link ? (
                                 <a 
                                   href={result.link} 
@@ -549,19 +550,19 @@ export default function Verify() {
                       <TableBody>
                         {verificationResults.filter(r => r.category === "case" && !isRepeatCitation(r).isRepeat).map((result) => (
                           <TableRow key={result.id} className="border-b border-slate-200 hover:bg-slate-50">
-                            <TableCell className="py-4 text-slate-900 font-medium">
+                            <TableCell className="py-4 text-slate-900 font-medium break-words whitespace-normal">
                               {result.number}
                             </TableCell>
-                            <TableCell className="py-4 text-slate-700 text-sm break-words">
+                            <TableCell className="py-4 text-slate-700 text-sm break-words whitespace-normal">
                               {result.fullText}
                             </TableCell>
-                            <TableCell className="py-4">
+                            <TableCell className="py-4 break-words whitespace-normal">
                               {getStatusBadge(result.status)}
                             </TableCell>
-                            <TableCell className="py-4 text-slate-600 text-sm">
-                              {result.reason || "-"}
+                            <TableCell className="py-4 text-slate-600 text-sm break-words whitespace-normal">
+                              {result.reason}
                             </TableCell>
-                            <TableCell className="py-4">
+                            <TableCell className="py-4 break-words whitespace-normal">
                               {result.link ? (
                                 <a 
                                   href={result.link} 

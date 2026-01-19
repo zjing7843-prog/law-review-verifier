@@ -205,3 +205,12 @@
 - [x] Allow citation text to wrap within cells (not force single line)
 - [x] Remove any min-width constraints that force horizontal scrolling
 - [x] Test all tables to ensure Edit/Delete buttons visible without scrolling
+
+
+## Fix Text Overlapping and Missing Links
+- [x] Add proper text wrapping to all table cells (break-words, whitespace-normal)
+- [x] Fix Parse page table cells to wrap text properly
+- [x] Fix Verify preview table cells to wrap text properly
+- [x] Fix Verify results tables cells to wrap text properly
+- [x] Ensure verified AND unsure citations in ALL categories (case, article, other) have Google search links
+- [x] Test with long citations to verify no text overlapping

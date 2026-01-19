@@ -317,9 +317,9 @@ export default function Parse() {
                       </>
                     ) : (
                       <>
-                        <TableCell className="font-medium">{citation.number}</TableCell>
-                        <TableCell>{getCategoryBadge(citation.category)}</TableCell>
-                        <TableCell className="text-sm break-words">{citation.fullText}</TableCell>
+                        <TableCell className="font-medium break-words whitespace-normal">{citation.number}</TableCell>
+                        <TableCell className="break-words whitespace-normal">{getCategoryBadge(citation.category)}</TableCell>
+                        <TableCell className="text-sm break-words whitespace-normal">{citation.fullText}</TableCell>
                         <TableCell>
                           <div className="flex gap-1">
                             <Button onClick={() => handleEdit(citation)} size="sm" variant="ghost" className="h-8 w-8 p-0">
