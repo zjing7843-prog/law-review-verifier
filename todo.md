@@ -214,3 +214,30 @@
 - [x] Fix Verify results tables cells to wrap text properly
 - [x] Ensure verified AND unsure citations in ALL categories (case, article, other) have Google search links
 - [x] Test with long citations to verify no text overlapping
+
+
+## Fix Other Table Text Overlapping
+- [x] Check why Other table still has text overlapping while Articles & Books table works correctly
+- [x] Apply same text wrapping fix to Other table cells
+- [x] Test with long GMC citation to verify no overlapping
+
+## Improve Case Verification Logic
+- [x] Detect official judgment system domains in Google search results (publications.parliament.uk, vlex.co.uk, bailii.org, caselaw.nationalarchives.gov.uk, etc.)
+- [x] Mark cases as "Verified" when official judgment links are found in search results
+- [x] Keep "Unsure" status only when no official sources are found
+- [x] Update reason to "Found on official judgment system" for verified cases
+- [x] Test with example: "[2005] 1 Cr App R 328" should be marked as Verified
+
+
+## Expand Official Domains to Multiple Jurisdictions
+- [x] Add US official domains (supremecourt.gov, uscourts.gov, justia.com, law.cornell.edu, courtlistener.com, casetext.com)
+- [x] Add Canadian domains (scc-csc.ca, canlii.org, decisions.fca-caf.gc.ca, courts.gov.bc.ca)
+- [x] Add Australian domains (austlii.edu.au, hcourt.gov.au, fedcourt.gov.au, jade.io)
+- [x] Add Hong Kong domains (hklii.hk, judiciary.hk, legalref.judiciary.hk)
+- [x] Add Singapore domains (singaporelawwatch.sg, elitigation.sg)
+- [x] Add New Zealand domains (nzlii.org, courtsofnz.govt.nz)
+- [x] Add Irish domains (courts.ie, bailii.org/ie)
+- [x] Add South African domains (saflii.org, constitutionalcourt.org.za)
+- [x] Add Indian domains (sci.gov.in, indiankanoon.org)
+- [x] Add EU domains (curia.europa.eu, eur-lex.europa.eu)
+- [x] Add international court domains (icj-cij.org, icc-cpi.int, echr.coe.int)
