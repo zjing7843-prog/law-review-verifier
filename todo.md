@@ -169,3 +169,10 @@
 - [x] Fix statistics calculation to include ALL footnotes (including ibid and cross-references)
 - [x] Keep results display showing only first-time citations (hide repeats)
 - [x] Update verification rate calculation: (verified count / total count including repeats) * 100
+
+
+## Bug: Repeat Citations Appearing in Results Display
+- [x] Filter out ibid and cross-reference citations from results display tables
+- [x] Only show first-time citations in Articles & Books, Cases, and Other tables
+- [x] Keep repeat citations in statistics calculation (already working)
+- [x] Test: Citations #4 and #6 (ibid) should NOT appear in Cases table

@@ -307,12 +307,7 @@ export default function Verify() {
   };
 
   // Calculate unique citations count (excluding ibid and cross-references)
-  const uniqueCitationsCount = citations.filter((citation) => {
-    const text = citation.fullText.toLowerCase();
-    const hasIbid = /\bibid\b/.test(text);
-    const hasCrossRef = /\(n\s+\d+\)/.test(citation.fullText);
-    return !hasIbid && !hasCrossRef;
-  }).length;
+  const uniqueCitationsCount = citations.filter((citation) => !isRepeatCitation(citation).isRepeat).length;
 
   // Calculate statistics based on ALL citations (including repeats)
   // verificationResults includes all citations with inherited status for repeats
@@ -481,7 +476,7 @@ export default function Verify() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {verificationResults.filter(r => r.category === "article").map((result) => (
+                        {verificationResults.filter(r => r.category === "article" && !isRepeatCitation(r).isRepeat).map((result) => (
                           <TableRow key={result.id} className="border-b border-slate-200 hover:bg-slate-50">
                             <TableCell className="py-4 text-slate-900 font-medium">
                               {result.number}
@@ -535,7 +530,7 @@ export default function Verify() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {verificationResults.filter(r => r.category === "case").map((result) => (
+                        {verificationResults.filter(r => r.category === "case" && !isRepeatCitation(r).isRepeat).map((result) => (
                           <TableRow key={result.id} className="border-b border-slate-200 hover:bg-slate-50">
                             <TableCell className="py-4 text-slate-900 font-medium">
                               {result.number}
@@ -589,7 +584,7 @@ export default function Verify() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {verificationResults.filter(r => r.category === "other").map((result) => (
+                        {verificationResults.filter(r => r.category === "other" && !isRepeatCitation(r).isRepeat).map((result) => (
                           <TableRow key={result.id} className="border-b border-slate-200 hover:bg-slate-50">
                             <TableCell className="py-4 text-slate-900 font-medium">
                               {result.number}
