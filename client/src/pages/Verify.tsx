@@ -320,13 +320,15 @@ export default function Verify() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {citations.map((citation) => (
-                    <TableRow key={citation.id}>
-                      <TableCell className="font-medium">{citation.number}</TableCell>
-                      <TableCell>{getCategoryBadge(citation.category)}</TableCell>
-                      <TableCell className="text-sm">{citation.fullText}</TableCell>
-                    </TableRow>
-                  ))}
+                  {citations
+                    .filter((citation) => !isRepeatCitation(citation).isRepeat)
+                    .map((citation) => (
+                      <TableRow key={citation.id}>
+                        <TableCell className="font-medium">{citation.number}</TableCell>
+                        <TableCell>{getCategoryBadge(citation.category)}</TableCell>
+                        <TableCell className="text-sm">{citation.fullText}</TableCell>
+                      </TableRow>
+                    ))}
                 </TableBody>
               </Table>
             </div>

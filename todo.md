@@ -131,3 +131,10 @@
 - [x] Check if punctuation (Ibid. vs Ibid vs ibid) is causing issues
 - [x] Ensure detection works with all variations
 - [x] Verify repeat citations are correctly filtered out before verification
+
+
+## Hide Repeat Citations from Verify Page Display
+- [x] Filter out repeat citations (ibid and cross-references) from the preview table on Verify page
+- [x] Only show unique citations that will actually be verified
+- [x] Update the table to display only the filtered citations
+- [x] Keep the summary text showing total vs unique counts
