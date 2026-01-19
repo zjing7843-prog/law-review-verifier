@@ -253,3 +253,13 @@
   * "For a detailed examination see also Julian Nowag and Alexandra Teorell, 'Beyond Balancing: Sustainability and Competition Law' (2020)..." ✅
   * "Okeoghene Odudu, 'The Meaning of Undertaking Within 81 EC' (2004–05) 7 CYELS, 214" ✅
   * "Case C- 22/98 Becu and others EU:C:1999:419, para 26." ✅
+
+
+## Replace Regex Categorization with LLM
+- [x] Design LLM prompt for citation categorization (case, article/book, other)
+- [x] Create server-side tRPC endpoint for batch LLM categorization
+- [x] Update Parse.tsx to call LLM API instead of local regex logic
+- [x] Add loading state during categorization
+- [x] Handle LLM errors gracefully with fallback
+- [x] Test with all previous examples to ensure accuracy (4/4 passed)
+- [x] Remove old regex-based detectCategory function

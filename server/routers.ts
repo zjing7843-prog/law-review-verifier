@@ -5,6 +5,7 @@ import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import * as db from "./db";
 import { downloadFile, extractDocxText, extractPdfText, extractFootnotes } from "./documentProcessor";
+import { categorizeCitationsBatch, CitationCategorySchema } from "./citationCategorizer";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -18,6 +19,21 @@ export const appRouter = router({
         success: true,
       } as const;
     }),
+  }),
+
+  citations: router({
+    categorize: publicProcedure
+      .input(z.object({
+        citations: z.array(z.string())
+      }))
+      .mutation(async ({ input }) => {
+        const results = await categorizeCitationsBatch(input.citations);
+        return results.map((result, index) => ({
+          citation: input.citations[index],
+          category: result.category,
+          confidence: result.confidence
+        }));
+      }),
   }),
 
   documents: router({

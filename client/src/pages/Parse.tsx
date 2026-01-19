@@ -5,9 +5,10 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { CheckCircle2, ArrowRight, Edit2, Save, X, Plus, Trash2 } from "lucide-react";
+import { CheckCircle2, ArrowRight, Edit2, Save, X, Plus, Trash2, Loader2 } from "lucide-react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
+import { trpc } from "@/lib/trpc";
 
 type CitationCategory = "case" | "article" | "other";
 
@@ -25,6 +26,9 @@ export default function Parse() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValues, setEditValues] = useState<ParsedCitation | null>(null);
 
+  const [isLoading, setIsLoading] = useState(false);
+  const categorizeMutation = trpc.citations.categorize.useMutation();
+
   useEffect(() => {
     // Get citations from sessionStorage
     const citationsText = sessionStorage.getItem('citations');
@@ -33,151 +37,48 @@ export default function Parse() {
       return;
     }
 
-    // Parse citations
-    const parsed = parseCitations(citationsText);
-    console.log('Parsed citations:', parsed);
-    setCitations(parsed);
+    // Parse citations and categorize with LLM
+    categorizeCitationsWithLLM(citationsText);
   }, [setLocation]);
 
-  const detectCategory = (text: string, previousCategory?: CitationCategory): CitationCategory => {
-    console.log('🔥 detectCategory VERSION 4.0 - Improved Article/Case Detection');
-    const trimmed = text.trim();
-    const lowerText = trimmed.toLowerCase();
-    
-    // Handle "ibid" - inherit category from previous citation
-    if (lowerText === 'ibid' || lowerText.startsWith('ibid.') || lowerText.startsWith('ibid,')) {
-      return previousCategory || "other";
-    }
-    
-    // Strip common prefixes that don't affect categorization
-    let cleanedText = text;
-    const prefixPatterns = [
-      /^See\s+/i,
-      /^For\s+a\s+detailed\s+examination\s+see\s+also\s+/i,
-      /^For\s+example,?\s+/i,
-      /^Compare\s+/i,
-      /^Cf\.?\s+/i,
-      /^E\.g\.?,?\s+/i
-    ];
-    
-    for (const pattern of prefixPatterns) {
-      cleanedText = cleanedText.replace(pattern, '');
-    }
-    
-    // PRIORITY 1: EU Case detection (most specific)
-    // Pattern: "Case C-22/98" or "EU:C:1999:419"
-    if (
-      /\bCase\s+[A-Z]-?\s*\d+\/\d+/i.test(cleanedText) || // "Case C-22/98" or "Case C- 22/98"
-      /\bEU:[A-Z]:\d{4}:\d+/i.test(cleanedText) // "EU:C:1999:419"
-    ) {
-      console.log('→ CASE (EU format)');
-      return "case";
-    }
-    
-    // PRIORITY 2: Article/Book detection (before general case detection)
-    // Pattern: Author name(s) + Title (quoted or book format) + Year + optional journal/page info
-    // Examples:
-    // - "Julian Nowag, Environmental Integration in Competition and Free-Movement Laws (OUP 2017) 1-12"
-    // - "Julian Nowag and Alexandra Teorell, 'Beyond Balancing: Sustainability and Competition Law' (2020) Concurrences..."
-    // - "Okeoghene Odudu, 'The Meaning of Undertaking Within 81 EC' (2004–05) 7 CYELS, 214"
-    
-    const hasQuotedTitle = /[\u0027\u2018\u2019\u201C\u201D][^\u0027\u2018\u2019\u201C\u201D]+[\u0027\u2018\u2019\u201C\u201D]/.test(cleanedText);
-    const hasYearInParens = /\((?:[A-Z]{2,}\s+)?\d{4}(?:[-–]\d{2,4})?\)/.test(cleanedText); // Supports (2004), (2004-05), or (OUP 2017)
-    const hasBookFormat = /\([A-Z]{2,}\s+\d{4}\)/.test(cleanedText); // (OUP 2017)
-    const hasBookTitle = /,\s+[A-Z][^,]+\([A-Z]{2,}\s+\d{4}\)/.test(cleanedText); // Author, Book Title (OUP 2017)
-    
-    // Author pattern: starts with capitalized name(s), possibly with "and"
-    const hasAuthorPattern = /^[A-Z][a-z]+(?:\s+[A-Z]{1,2}\.?)?(?:\s+[A-Z][a-z]+)?(?:\s+and\s+[A-Z][a-z]+(?:\s+[A-Z]{1,2}\.?)?(?:\s+[A-Z][a-z]+)?)?\s*,/i.test(cleanedText);
-    
-    // Journal/page info patterns
-    const hasJournalInfo = /\d+\s*\(\d+\)|Vol\.?\s*\d+|\d+\s+[A-Z][A-Z]+|,\s*\d+[-–]?\d*\.?$/.test(cleanedText);
-    
-    console.log('[Detection]', cleanedText.substring(0, 80));
-    console.log('  Article indicators:', { hasQuotedTitle, hasYearInParens, hasBookFormat, hasBookTitle, hasAuthorPattern, hasJournalInfo });
-    
-    // Article/Book: Must have author pattern + (quoted title OR book format OR book title) + year
-    if (hasAuthorPattern && (hasQuotedTitle || hasBookFormat || hasBookTitle) && hasYearInParens) {
-      console.log('→ ARTICLE/BOOK');
-      return "article";
-    }
-    
-    // Also detect books without author pattern but with clear book format
-    // Example: "Environmental Integration in Competition and Free-Movement Laws (OUP 2017)"
-    if (hasBookFormat && hasYearInParens && !(/\bCase\s+[A-Z]-?\s*\d+/.test(cleanedText))) {
-      console.log('→ ARTICLE/BOOK (book format detected)');
-      return "article";
-    }
-    
-    // PRIORITY 3: General case detection patterns
-    // 1. Court citations: [2017] EWCA Crim 1168, [1994] 3 ALL E R 79, [1995] 1 AC 171
-    // 2. Party names with "v": R v Adomako, Smith v Jones
-    // 3. Paragraph references: "at [56]"
-    // 4. Case numbers with hyphens/slashes: 22/98, C-123/45
-    if (
-      /\[\d{4}\]/.test(cleanedText) || // Any [YYYY] format
-      /\b[A-Z][a-z]*\s+v\.?\s+[A-Z]/i.test(cleanedText) || // "R v Adomako" or "Smith v. Jones"
-      /\bat\s+\[\d+\]/i.test(cleanedText) || // "at [56]"
-      /\bpara\.?\s+\d+/i.test(cleanedText) || // "para 26"
-      /\(\d{4}\)\s+\d+\s+[A-Z]{2,}/i.test(cleanedText) // "(2019) 22 HKCFAR"
-    ) {
-      // BUT: Don't classify as case if it has strong article indicators
-      if (hasAuthorPattern && hasQuotedTitle) {
-        console.log('→ ARTICLE (has case-like pattern but stronger article indicators)');
-        return "article";
-      }
-      console.log('→ CASE (general format)');
-      return "case";
-    }
-    
-    // PRIORITY 4: Other detection patterns
-    // 1. URLs (https:// or http://)
-    // 2. Department/Organization names
-    // 3. Government publications
-    if (
-      /https?:\/\//i.test(cleanedText) ||
-      /^Department\s+of/i.test(cleanedText) ||
-      /Government/i.test(cleanedText) ||
-      /Available\s+at/i.test(cleanedText)
-    ) {
-      return "other";
-    }
-    
-    // Default: if has quoted title but doesn't match article pattern, likely other
-    // Otherwise check for case-like features
-    if (hasQuotedTitle) {
-      return "other";
-    }
-    
-    return "other";
-  };
-
-  const parseCitations = (text: string): ParsedCitation[] => {
-    const lines = text.split('\n').filter(l => l.trim());
-    const results: ParsedCitation[] = [];
-    let currentNumber = 1;
-    let previousCategory: CitationCategory | undefined = undefined;
-
-    lines.forEach((line, lineIndex) => {
+  const categorizeCitationsWithLLM = async (citationsText: string) => {
+    setIsLoading(true);
+    try {
+      // Split into lines and filter
+      const lines = citationsText.split('\n').filter(l => l.trim());
+      const allCitations: string[] = [];
+      
       // Split by semicolon for multiple citations within one line
-      const subCitations = line.split(';').map(s => s.trim()).filter(s => s);
-
-      subCitations.forEach((citation, subIndex) => {
-        const category = detectCategory(citation, previousCategory);
-        
-        results.push({
-          id: `${lineIndex}-${subIndex}`,
-          number: String(currentNumber),
-          category,
-          fullText: citation,
-        });
-        
-        previousCategory = category;
-        currentNumber++;
+      lines.forEach(line => {
+        const subCitations = line.split(';').map(s => s.trim()).filter(s => s);
+        allCitations.push(...subCitations);
       });
-    });
 
-    return results;
+      // Call LLM to categorize all citations
+      const result = await categorizeMutation.mutateAsync({
+        citations: allCitations
+      });
+
+      // Build parsed citations with LLM results
+      const parsed: ParsedCitation[] = result.map((item, index) => ({
+        id: `citation-${index}`,
+        number: String(index + 1),
+        category: item.category as CitationCategory,
+        fullText: item.citation
+      }));
+
+      console.log('LLM categorized citations:', parsed);
+      setCitations(parsed);
+    } catch (error) {
+      console.error('Failed to categorize citations:', error);
+      toast.error('Failed to categorize citations. Please try again.');
+      setLocation("/");
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  // Old regex-based categorization removed - now using LLM via API
 
   const handleEdit = (citation: ParsedCitation) => {
     setEditingId(citation.id);
@@ -262,6 +163,15 @@ export default function Parse() {
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-8">
+        {isLoading && (
+          <div className="flex flex-col items-center justify-center py-16">
+            <Loader2 className="w-12 h-12 text-blue-600 animate-spin mb-4" />
+            <p className="text-lg font-medium text-slate-900 mb-2">Categorizing citations with AI...</p>
+            <p className="text-sm text-slate-600">This may take a few moments</p>
+          </div>
+        )}
+        {!isLoading && (
+        <>
         <div className="mb-8">
           <div className="flex items-center gap-4 mb-4">
             <Button variant="outline" onClick={() => setLocation('/')}>
@@ -394,6 +304,8 @@ export default function Parse() {
             </Button>
           </div>
         </Card>
+        </>
+        )}
       </div>
     </div>
   );
