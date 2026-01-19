@@ -275,3 +275,16 @@
 - [ ] Add validation and error handling for custom API keys
 - [x] Keep Manus LLM as default for testing/demo purposes
 - [x] Test Settings page UI and database integration
+
+
+## Expand LLM Categorization with Granular Categories
+- [x] Update category schema to support: case, article, book, policy paper, website, statute/legislation, explanatory text
+- [x] Update LLM prompt to detect explanatory text (non-citations that explain something)
+- [x] Add "skip verification" flag for explanatory text category
+- [x] Update Parse page UI to display new categories with appropriate colors/badges
+- [x] Update Verify page to filter out explanatory text from web search
+- [x] Test with examples:
+  * "Another option is a change of the competition law provisions in the Treaty..." → explanatory text ✅
+  * "See Julian Nowag, Environmental Integration..." → book ✅
+  * "Available at https://example.com/article" → website ✅
+  * Article 101 TFEU → statute/legislation ✅

@@ -10,13 +10,14 @@ import { useLocation } from "wouter";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 
-type CitationCategory = "case" | "article" | "other";
+type CitationCategory = "case" | "article" | "book" | "policy_paper" | "website" | "statute" | "explanatory_text" | "other";
 
 interface ParsedCitation {
   id: string;
   number: string;
   category: CitationCategory;
   fullText: string;
+  skipVerification?: boolean;
 }
 
 export default function Parse() {
@@ -127,7 +128,12 @@ export default function Parse() {
   const getCategoryLabel = (category: CitationCategory) => {
     switch (category) {
       case "case": return "Case";
-      case "article": return "Article/Book Chapter";
+      case "article": return "Article";
+      case "book": return "Book";
+      case "policy_paper": return "Policy Paper";
+      case "website": return "Website";
+      case "statute": return "Statute/Legislation";
+      case "explanatory_text": return "Explanatory Text";
       case "other": return "Other";
     }
   };
@@ -137,7 +143,17 @@ export default function Parse() {
       case "case":
         return <span className="px-2 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-medium">Case</span>;
       case "article":
-        return <span className="px-2 py-1 rounded-full bg-green-100 text-green-700 text-xs font-medium">Article/Book</span>;
+        return <span className="px-2 py-1 rounded-full bg-green-100 text-green-700 text-xs font-medium">Article</span>;
+      case "book":
+        return <span className="px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-medium">Book</span>;
+      case "policy_paper":
+        return <span className="px-2 py-1 rounded-full bg-purple-100 text-purple-700 text-xs font-medium">Policy Paper</span>;
+      case "website":
+        return <span className="px-2 py-1 rounded-full bg-cyan-100 text-cyan-700 text-xs font-medium">Website</span>;
+      case "statute":
+        return <span className="px-2 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-medium">Statute</span>;
+      case "explanatory_text":
+        return <span className="px-2 py-1 rounded-full bg-slate-100 text-slate-500 text-xs font-medium italic">Explanatory Text</span>;
       case "other":
         return <span className="px-2 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-medium">Other</span>;
     }
@@ -145,7 +161,13 @@ export default function Parse() {
 
   const caseCount = citations.filter(c => c.category === "case").length;
   const articleCount = citations.filter(c => c.category === "article").length;
+  const bookCount = citations.filter(c => c.category === "book").length;
+  const policyCount = citations.filter(c => c.category === "policy_paper").length;
+  const websiteCount = citations.filter(c => c.category === "website").length;
+  const statuteCount = citations.filter(c => c.category === "statute").length;
+  const explanatoryCount = citations.filter(c => c.category === "explanatory_text").length;
   const otherCount = citations.filter(c => c.category === "other").length;
+  const citationCount = citations.filter(c => c.category !== "explanatory_text").length;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50">
@@ -183,11 +205,11 @@ export default function Parse() {
         </div>
 
         {/* Statistics */}
-        <div className="grid md:grid-cols-4 gap-4 mb-6">
+        <div className="grid md:grid-cols-5 gap-3 mb-6">
           <Card className="p-4 border border-slate-200">
             <div className="text-center">
               <div className="text-2xl font-bold text-slate-900 mb-1">{citations.length}</div>
-              <p className="text-xs text-slate-600">Total Citations</p>
+              <p className="text-xs text-slate-600">Total Items</p>
             </div>
           </Card>
           <Card className="p-4 border border-blue-200 bg-blue-50">
@@ -198,14 +220,20 @@ export default function Parse() {
           </Card>
           <Card className="p-4 border border-green-200 bg-green-50">
             <div className="text-center">
-              <div className="text-2xl font-bold text-green-600 mb-1">{articleCount}</div>
-              <p className="text-xs text-slate-600">Articles/Books</p>
+              <div className="text-2xl font-bold text-green-600 mb-1">{articleCount + bookCount}</div>
+              <p className="text-xs text-slate-600">Articles & Books</p>
             </div>
           </Card>
-          <Card className="p-4 border border-slate-200 bg-slate-50">
+          <Card className="p-4 border border-purple-200 bg-purple-50">
             <div className="text-center">
-              <div className="text-2xl font-bold text-slate-600 mb-1">{otherCount}</div>
-              <p className="text-xs text-slate-600">Others</p>
+              <div className="text-2xl font-bold text-purple-600 mb-1">{policyCount + websiteCount + statuteCount}</div>
+              <p className="text-xs text-slate-600">Policy/Web/Statute</p>
+            </div>
+          </Card>
+          <Card className="p-4 border border-slate-300 bg-slate-100">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-slate-500 mb-1">{explanatoryCount}</div>
+              <p className="text-xs text-slate-600 italic">Explanatory (skipped)</p>
             </div>
           </Card>
         </div>
@@ -251,7 +279,12 @@ export default function Parse() {
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="case">Case</SelectItem>
-                              <SelectItem value="article">Article/Book Chapter</SelectItem>
+                              <SelectItem value="article">Article</SelectItem>
+                              <SelectItem value="book">Book</SelectItem>
+                              <SelectItem value="policy_paper">Policy Paper</SelectItem>
+                              <SelectItem value="website">Website</SelectItem>
+                              <SelectItem value="statute">Statute/Legislation</SelectItem>
+                              <SelectItem value="explanatory_text">Explanatory Text</SelectItem>
                               <SelectItem value="other">Other</SelectItem>
                             </SelectContent>
                           </Select>

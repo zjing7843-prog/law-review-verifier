@@ -7,13 +7,14 @@ import { CheckCircle2, AlertCircle, HelpCircle, Download, Loader2, ArrowRight } 
 import { useLocation } from "wouter";
 import { toast } from "sonner";
 
-type CitationCategory = "case" | "article" | "other";
+type CitationCategory = "case" | "article" | "book" | "policy_paper" | "website" | "statute" | "explanatory_text" | "other";
 
 interface Citation {
   id: string;
   number: string;
   category: CitationCategory;
   fullText: string;
+  skipVerification?: boolean;
 }
 
 interface VerificationResult extends Citation {
@@ -72,8 +73,15 @@ export default function Verify() {
       // Step 1: Filter citations to identify unique ones that need verification
       const citationsToVerify: Citation[] = [];
       const repeatCitations: Map<string, { citation: Citation; referencesFootnote?: string }> = new Map();
+      const explanatoryCitations: Map<string, Citation> = new Map();
       
       citations.forEach((citation) => {
+        // Skip explanatory text entirely
+        if (citation.category === "explanatory_text" || citation.skipVerification) {
+          explanatoryCitations.set(citation.id, citation);
+          return;
+        }
+        
         const { isRepeat, referencesFootnote } = isRepeatCitation(citation);
         if (isRepeat) {
           repeatCitations.set(citation.id, { citation, referencesFootnote });
@@ -85,6 +93,7 @@ export default function Verify() {
       console.log(`Total citations: ${citations.length}`);
       console.log(`Unique citations to verify: ${citationsToVerify.length}`);
       console.log(`Repeat citations (filtered out): ${repeatCitations.size}`);
+      console.log(`Explanatory text (skipped): ${explanatoryCitations.size}`);
       
       // Step 2: Verify only unique citations
       const results: VerificationResult[] = [];
@@ -292,6 +301,15 @@ export default function Verify() {
             });
           }
         }
+      });
+      
+      // Step 4: Add explanatory text as skipped
+      explanatoryCitations.forEach((citation) => {
+        allResults.push({
+          ...citation,
+          status: "verified",
+          reason: "Explanatory text (skipped verification)",
+        });
       });
       
       // Sort results by citation number to maintain original order

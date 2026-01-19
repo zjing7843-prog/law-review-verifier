@@ -2,12 +2,22 @@ import { invokeLLM } from "./_core/llm";
 import { z } from "zod";
 import * as db from "./db";
 
-export const CitationCategorySchema = z.enum(["case", "article", "other"]);
+export const CitationCategorySchema = z.enum([
+  "case",
+  "article",
+  "book",
+  "policy_paper",
+  "website",
+  "statute",
+  "explanatory_text",
+  "other"
+]);
 export type CitationCategory = z.infer<typeof CitationCategorySchema>;
 
 export interface CategorizationResult {
   category: CitationCategory;
   confidence: "high" | "medium" | "low";
+  skipVerification?: boolean; // True for explanatory text
 }
 
 /**
@@ -31,7 +41,7 @@ export async function categorizeCitation(citation: string, userId?: number): Pro
     messages: [
       {
         role: "system",
-        content: `You are a legal citation expert. Categorize the given citation into one of three categories:
+        content: `You are a legal citation expert. Categorize the given text into one of these categories:
 
 1. "case" - Legal case citations (court decisions, judgments)
    Examples:
@@ -39,21 +49,45 @@ export async function categorizeCitation(citation: string, userId?: number): Pro
    - R v Adomako [1994] 3 All ER 79
    - Smith v Jones (2019) 22 HKCFAR 123
 
-2. "article" - Academic articles, journal articles, book chapters, or books
+2. "article" - Academic journal articles
    Examples:
-   - Julian Nowag, Environmental Integration in Competition and Free-Movement Laws (OUP 2017) 1-12
    - Okeoghene Odudu, 'The Meaning of Undertaking Within 81 EC' (2004–05) 7 CYELS, 214
    - Julian Nowag and Alexandra Teorell, 'Beyond Balancing: Sustainability and Competition Law' (2020) Concurrences N° 4-2020
 
-3. "other" - Everything else (websites, government publications, reports, etc.)
+3. "book" - Books, monographs, book chapters
    Examples:
-   - https://www.example.com/article
+   - Julian Nowag, Environmental Integration in Competition and Free-Movement Laws (OUP 2017) 1-12
+   - Richard Whish and David Bailey, Competition Law (9th edn, OUP 2018)
+
+4. "policy_paper" - Government white papers, policy documents, reports
+   Examples:
    - Department of Justice Report (2020)
+   - European Commission, 'Green Paper on Competition Policy' COM(2020) 123
+
+5. "website" - Online resources, web pages, blog posts
+   Examples:
    - Available at <https://example.com>
+   - https://www.example.com/article
+
+6. "statute" - Legislation, treaties, regulations
+   Examples:
+   - Article 101 TFEU
+   - Competition Act 1998, s 2
+   - Treaty on the Functioning of the European Union
+
+7. "explanatory_text" - NOT a citation, just explanatory or descriptive text
+   Examples:
+   - "Another option is a change of the competition law provisions in the Treaty, however as such a change is considered unlikely in the near future it is not covered in this paper."
+   - "This approach has been criticized by many scholars."
+   - "See further discussion in Chapter 3."
+
+8. "other" - Anything else that doesn't fit above categories
+
+IMPORTANT: If the text is purely explanatory/descriptive and NOT citing a source, categorize as "explanatory_text".
 
 Respond ONLY with a JSON object in this exact format:
 {
-  "category": "case" | "article" | "other",
+  "category": "case" | "article" | "book" | "policy_paper" | "website" | "statute" | "explanatory_text" | "other",
   "confidence": "high" | "medium" | "low"
 }
 
@@ -74,8 +108,8 @@ Do not include any explanation or additional text.`
           properties: {
             category: {
               type: "string",
-              enum: ["case", "article", "other"],
-              description: "The category of the citation"
+              enum: ["case", "article", "book", "policy_paper", "website", "statute", "explanatory_text", "other"],
+              description: "The category of the citation or text"
             },
             confidence: {
               type: "string",
@@ -94,9 +128,11 @@ Do not include any explanation or additional text.`
   const contentText = typeof content === 'string' ? content : '';
   const result = JSON.parse(contentText || "{}");
   
+  const category = CitationCategorySchema.parse(result.category);
   return {
-    category: CitationCategorySchema.parse(result.category),
-    confidence: result.confidence || "medium"
+    category,
+    confidence: result.confidence || "medium",
+    skipVerification: category === "explanatory_text"
   };
 }
 
