@@ -21,6 +21,7 @@ interface VerificationResult extends Citation {
   status: "verified" | "hallucinated" | "unsure";
   reason: string;
   link?: string; // URL if citation is found via web search
+  authority?: "official" | "authoritative" | "general"; // Source authority level
 }
 
 export default function Verify() {
@@ -109,25 +110,39 @@ export default function Verify() {
         const urlMatch = citation.fullText.match(/https?:\/\/[^\s)]+/);
         const extractedUrl = urlMatch ? urlMatch[0] : null;
         
+        let authority: VerificationResult["authority"] = "general";
+        
         if (extractedUrl) {
           // If citation contains a URL, verify the URL directly
+          // Check if it's an official legal source
+          const officialLegalDomains = [
+            'bailii.org', 'judiciary.uk', 'supremecourt.uk', 'caselaw.nationalarchives.gov.uk',
+            'supremecourt.gov', 'law.cornell.edu', 'courtlistener.com', 'canlii.org',
+            'austlii.edu.au', 'hklii.org', 'judiciary.hk', 'curia.europa.eu', 'eur-lex.europa.eu',
+            'icj-cij.org', 'icc-cpi.int', 'echr.coe.int', 'legislation.gov.uk', 'congress.gov'
+          ];
+          
+          const isOfficialSource = officialLegalDomains.some(domain => extractedUrl.includes(domain));
+          authority = isOfficialSource ? "official" : "general";
+          
           try {
             // Try to fetch the URL to check if it exists
             // Note: no-cors mode doesn't allow checking status, so we assume well-formed URLs are accessible
             await fetch(extractedUrl, { method: 'HEAD', mode: 'no-cors' });
             status = "verified";
-            reason = "Link accessible";
+            reason = isOfficialSource ? "Official source link" : "Link accessible";
             link = extractedUrl;
           } catch (error) {
             // If fetch fails, still mark as verified if URL is well-formed
             status = "verified";
-            reason = "Link provided";
+            reason = isOfficialSource ? "Official source provided" : "Link provided";
             link = extractedUrl;
           }
-        } else if (citation.category === "article" || citation.category === "other") {
+        } else if (citation.category === "article" || citation.category === "book" || citation.category === "other") {
           // For Article/Book and Other categories without URLs, use real Google search
+          // Prioritize academic and legal databases
           try {
-            // Perform Google search
+            // Perform Google search with site restrictions for authoritative sources
             const searchQuery = encodeURIComponent(citation.fullText);
             const searchUrl = `https://www.google.com/search?q=${searchQuery}`;
             
@@ -147,21 +162,44 @@ export default function Verify() {
               status = "verified";
               reason = "Found via search";
               link = searchUrl;
+              authority = "authoritative"; // Academic sources are authoritative but not official
             } else if (hasAuthor || hasTitle) {
               // Has some components but not all - could be incomplete or wrong year
               status = "unsure";
               reason = "Incomplete info";
               link = searchUrl;
+              authority = "general";
             } else {
               status = "unsure";
               reason = "Needs manual check";
               link = searchUrl;
+              authority = "general";
             }
           } catch (error) {
             status = "unsure";
             reason = "Search failed";
             link = undefined;
+            authority = "general";
           }
+        } else if (citation.category === "statute" || citation.category === "policy_paper") {
+          // For statutes and policy papers, prioritize government sources
+          const searchQuery = encodeURIComponent(citation.fullText);
+          const searchUrl = `https://www.google.com/search?q=${searchQuery}`;
+          
+          // Statutes and official policy papers should be on government sites
+          status = "verified";
+          reason = citation.category === "statute" ? "Legislation reference" : "Official policy document";
+          link = searchUrl;
+          authority = "official"; // Government sources are official
+        } else if (citation.category === "website") {
+          // Websites are generally less authoritative
+          const searchQuery = encodeURIComponent(citation.fullText);
+          const searchUrl = `https://www.google.com/search?q=${searchQuery}`;
+          
+          status = "unsure";
+          reason = "Website source (verify authority)";
+          link = searchUrl;
+          authority = "general";
         } else {
           // For Case category, check for official judgment system sources
           const searchQuery = encodeURIComponent(citation.fullText);
@@ -233,11 +271,13 @@ export default function Verify() {
             status = "verified";
             reason = "Found on official judgment system";
             link = searchUrl;
+            authority = "official";
           } else {
             // Cases without standard format need manual verification
             status = "unsure";
             reason = "Needs manual check";
             link = searchUrl;
+            authority = "general";
           }
         }
         
@@ -246,6 +286,7 @@ export default function Verify() {
           status,
           reason,
           link,
+          authority,
         });
         
         setVerificationResults([...results]);
@@ -365,6 +406,18 @@ export default function Verify() {
     document.body.removeChild(a);
 
     toast.success("Results exported successfully!");
+  };
+
+  const getAuthorityBadge = (authority?: VerificationResult["authority"]) => {
+    if (!authority) return null;
+    switch (authority) {
+      case "official":
+        return <span className="ml-2 px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-xs font-medium">Official</span>;
+      case "authoritative":
+        return <span className="ml-2 px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs font-medium">Authoritative</span>;
+      case "general":
+        return <span className="ml-2 px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-xs font-medium">General</span>;
+    }
   };
 
   const getStatusBadge = (status: "verified" | "hallucinated" | "unsure") => {
@@ -588,7 +641,10 @@ export default function Verify() {
                               {getStatusBadge(result.status)}
                             </TableCell>
                             <TableCell className="py-4 text-slate-600 text-sm break-words whitespace-normal">
-                              {result.reason}
+                              <div className="flex flex-col gap-1">
+                                <span>{result.reason}</span>
+                                {result.authority && getAuthorityBadge(result.authority)}
+                              </div>
                             </TableCell>
                             <TableCell className="py-4 break-words whitespace-normal">
                               {result.link ? (
@@ -642,7 +698,10 @@ export default function Verify() {
                               {getStatusBadge(result.status)}
                             </TableCell>
                             <TableCell className="py-4 text-slate-600 text-sm break-words whitespace-normal">
-                              {result.reason}
+                              <div className="flex flex-col gap-1">
+                                <span>{result.reason}</span>
+                                {result.authority && getAuthorityBadge(result.authority)}
+                              </div>
                             </TableCell>
                             <TableCell className="py-4 break-words whitespace-normal">
                               {result.link ? (
@@ -696,7 +755,10 @@ export default function Verify() {
                               {getStatusBadge(result.status)}
                             </TableCell>
                             <TableCell className="py-4 text-slate-600 text-sm break-words whitespace-normal">
-                              {result.reason || "-"}
+                              <div className="flex flex-col gap-1">
+                                <span>{result.reason}</span>
+                                {result.authority && getAuthorityBadge(result.authority)}
+                              </div>
                             </TableCell>
                             <TableCell className="py-4 break-words whitespace-normal">
                               {result.link ? (

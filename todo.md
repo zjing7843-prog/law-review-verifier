@@ -288,3 +288,12 @@
   * "See Julian Nowag, Environmental Integration..." → book ✅
   * "Available at https://example.com/article" → website ✅
   * Article 101 TFEU → statute/legislation ✅
+
+
+## Law Review Editor Focus
+- [x] Update LLM categorization prompt to emphasize law review context (primary vs secondary sources)
+- [x] Clarify that cases and legislation are PRIMARY categories for law review work
+- [x] Update verification logic to prioritize authoritative legal sources
+- [x] Weight official court websites, government databases, and law libraries higher
+- [x] Add source authority indicators (official/authoritative/general) in verification results
+- [x] Display authority badges in verification results for editor review
