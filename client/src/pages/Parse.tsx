@@ -260,14 +260,14 @@ export default function Parse() {
             </Button>
           </div>
 
-          <div className="border rounded-lg overflow-hidden">
-            <Table>
+          <div className="border rounded-lg">
+            <Table className="table-fixed w-full">
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-12">No.</TableHead>
-                  <TableHead className="w-32">Category</TableHead>
-                  <TableHead className="min-w-0">Full Citation</TableHead>
-                  <TableHead className="w-24">Actions</TableHead>
+                  <TableHead className="w-[5%]">No.</TableHead>
+                  <TableHead className="w-[15%]">Category</TableHead>
+                  <TableHead className="w-[60%]">Full Citation</TableHead>
+                  <TableHead className="w-[20%]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

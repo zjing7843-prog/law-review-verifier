@@ -196,3 +196,12 @@
 ## Remove Debug Alert Window
 - [x] Find and remove "Parse page VERSION 2.0 loaded" alert/window from Parse page
 - [x] Check for any other debug alerts or console.log statements
+
+
+## Fix Column Width Autofit for All Tables
+- [x] Parse page table: Set proper column width percentages (No: 5%, Category: 15%, Citation: 60%, Actions: 20%)
+- [x] Verify preview table: Set proper column widths (No: 5%, Category: 15%, Citation: 80%)
+- [x] Verify results tables: Set proper column widths (No: 5%, Citation: 45%, Status: 15%, Reason: 20%, Link: 15%)
+- [x] Allow citation text to wrap within cells (not force single line)
+- [x] Remove any min-width constraints that force horizontal scrolling
+- [x] Test all tables to ensure Edit/Delete buttons visible without scrolling

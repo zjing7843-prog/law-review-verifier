@@ -374,13 +374,13 @@ export default function Verify() {
               )}
             </div>
 
-            <div className="border rounded-lg overflow-hidden mb-6">
-              <Table>
+            <div className="border rounded-lg mb-6">
+              <Table className="table-fixed w-full">
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-12">No.</TableHead>
-                    <TableHead className="w-28">Category</TableHead>
-                    <TableHead className="min-w-0">Full Citation</TableHead>
+                    <TableHead className="w-[5%]">No.</TableHead>
+                    <TableHead className="w-[15%]">Category</TableHead>
+                    <TableHead className="w-[80%]">Full Citation</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -482,14 +482,14 @@ export default function Verify() {
                 <h2 className="text-xl font-semibold text-slate-900 mb-4">Articles & Books</h2>
                 <Card className="border border-slate-200 overflow-hidden">
                   <div className="w-full">
-                    <Table>
+                    <Table className="table-fixed w-full">
                       <TableHeader>
                         <TableRow className="bg-slate-50 border-b border-slate-200">
-                          <TableHead className="w-10 font-semibold text-slate-900">No.</TableHead>
-                          <TableHead className="min-w-0 font-semibold text-slate-900">Citation</TableHead>
-                          <TableHead className="w-24 font-semibold text-slate-900">Status</TableHead>
-                          <TableHead className="w-32 font-semibold text-slate-900">Reason</TableHead>
-                          <TableHead className="w-16 font-semibold text-slate-900">Link</TableHead>
+                          <TableHead className="w-[5%] font-semibold text-slate-900">No.</TableHead>
+                          <TableHead className="w-[45%] font-semibold text-slate-900">Citation</TableHead>
+                          <TableHead className="w-[15%] font-semibold text-slate-900">Status</TableHead>
+                          <TableHead className="w-[20%] font-semibold text-slate-900">Reason</TableHead>
+                          <TableHead className="w-[15%] font-semibold text-slate-900">Link</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -536,14 +536,14 @@ export default function Verify() {
                 <h2 className="text-xl font-semibold text-slate-900 mb-4">Cases</h2>
                 <Card className="border border-slate-200 overflow-hidden">
                   <div className="w-full">
-                    <Table>
+                    <Table className="table-fixed w-full">
                       <TableHeader>
                         <TableRow className="bg-slate-50 border-b border-slate-200">
-                          <TableHead className="w-10 font-semibold text-slate-900">No.</TableHead>
-                          <TableHead className="min-w-0 font-semibold text-slate-900">Citation</TableHead>
-                          <TableHead className="w-24 font-semibold text-slate-900">Status</TableHead>
-                          <TableHead className="w-32 font-semibold text-slate-900">Reason</TableHead>
-                          <TableHead className="w-16 font-semibold text-slate-900">Link</TableHead>
+                          <TableHead className="w-[5%] font-semibold text-slate-900">No.</TableHead>
+                          <TableHead className="w-[45%] font-semibold text-slate-900">Citation</TableHead>
+                          <TableHead className="w-[15%] font-semibold text-slate-900">Status</TableHead>
+                          <TableHead className="w-[20%] font-semibold text-slate-900">Reason</TableHead>
+                          <TableHead className="w-[15%] font-semibold text-slate-900">Link</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -590,14 +590,14 @@ export default function Verify() {
                 <h2 className="text-xl font-semibold text-slate-900 mb-4">Other</h2>
                 <Card className="border border-slate-200 overflow-hidden">
                   <div className="w-full">
-                    <Table>
+                    <Table className="table-fixed w-full">
                       <TableHeader>
                         <TableRow className="bg-slate-50 border-b border-slate-200">
-                          <TableHead className="w-10 font-semibold text-slate-900">No.</TableHead>
-                          <TableHead className="min-w-0 font-semibold text-slate-900">Citation</TableHead>
-                          <TableHead className="w-24 font-semibold text-slate-900">Status</TableHead>
-                          <TableHead className="w-32 font-semibold text-slate-900">Reason</TableHead>
-                          <TableHead className="w-16 font-semibold text-slate-900">Link</TableHead>
+                          <TableHead className="w-[5%] font-semibold text-slate-900">No.</TableHead>
+                          <TableHead className="w-[45%] font-semibold text-slate-900">Citation</TableHead>
+                          <TableHead className="w-[15%] font-semibold text-slate-900">Status</TableHead>
+                          <TableHead className="w-[20%] font-semibold text-slate-900">Reason</TableHead>
+                          <TableHead className="w-[15%] font-semibold text-slate-900">Link</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
