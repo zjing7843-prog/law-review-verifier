@@ -47,15 +47,17 @@ export default function Verify() {
 
   // Helper function to detect if a citation is a repeat reference
   const isRepeatCitation = (citation: Citation): { isRepeat: boolean; referencesFootnote?: string } => {
-    const text = citation.fullText.toLowerCase();
+    const text = citation.fullText;
     
-    // Check for "ibid" references
-    if (/\bibid\b/.test(text)) {
+    // Check for "ibid" references (case-insensitive, with or without punctuation)
+    // Matches: ibid, Ibid, IBID, ibid., Ibid., etc.
+    if (/\bibid\.?\b/i.test(text)) {
       return { isRepeat: true };
     }
     
-    // Check for cross-reference pattern "(n [number])"
-    const crossRefMatch = citation.fullText.match(/\(n\s+(\d+)\)/);
+    // Check for cross-reference pattern "(n [number])" (case-insensitive)
+    // Matches: (n 1), (N 1), (n1), etc.
+    const crossRefMatch = text.match(/\([nN]\s*(\d+)\)/i);
     if (crossRefMatch) {
       return { isRepeat: true, referencesFootnote: crossRefMatch[1] };
     }

@@ -123,3 +123,11 @@
 - [x] Map verification results back to all instances of same source
 - [x] Update UI to show verification progress only for unique citations
 - [x] Test with examples: "Mak Wan Ling (n 7), at [34]" should reference footnote 7
+
+
+## Fix Ibid and Cross-Reference Detection
+- [x] Test with user's real example: "Ibid., at 8." and "Ibid., at [94], [187]."
+- [x] Check if capitalization (Ibid vs ibid) is causing issues
+- [x] Check if punctuation (Ibid. vs Ibid vs ibid) is causing issues
+- [x] Ensure detection works with all variations
+- [x] Verify repeat citations are correctly filtered out before verification
