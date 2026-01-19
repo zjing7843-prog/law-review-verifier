@@ -88,3 +88,27 @@
 - [x] Check if Parse.tsx changes are actually being served to browser
 - [x] Add console.log to see what category is being assigned
 - [ ] Test in actual browser with real citations
+
+
+## Force Cache Clear
+- [ ] Add version number to page to verify which code is loading
+- [ ] Add alert on page load to confirm new code is running
+- [ ] Clear Vite build cache completely
+
+
+## Fix Smart Quotes Detection
+- [x] Update hasQuotedTitle regex to detect curly/smart quotes (' ' " ")
+- [ ] Test with actual user citations that have smart quotes
+- [ ] Verify articles are now detected correctly
+
+
+## Fix Regex with Unicode Escapes
+- [x] Replace literal quote characters with \\u0027, \\u2018, \\u2019, \\u201C, \\u201D
+- [ ] Test regex pattern actually matches quoted titles
+- [ ] Verify articles show correct count in UI
+
+
+## Add Navigation Buttons
+- [x] Add "Back" button to Parse page (returns to Home)
+- [x] Add "Back" button to Verify page (returns to Parse)
+- [x] Test navigation flow works correctly

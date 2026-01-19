@@ -185,6 +185,11 @@ export default function Verify() {
       {/* Main Content */}
       <div className="container max-w-6xl mx-auto px-4 py-16">
         <div className="mb-8">
+          <div className="flex items-center gap-4 mb-4">
+            <Button variant="outline" onClick={() => setLocation('/parse')}>
+              ← Back to Edit Citations
+            </Button>
+          </div>
           <h1 className="text-3xl font-bold text-slate-900 mb-2">Verify Citations</h1>
           <p className="text-slate-600">Step 3 of 3: Verify citations via web search</p>
         </div>

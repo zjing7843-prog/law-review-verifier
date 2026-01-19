@@ -26,6 +26,9 @@ export default function Parse() {
   const [editValues, setEditValues] = useState<ParsedCitation | null>(null);
 
   useEffect(() => {
+    console.log('🔥 Parse page loaded - VERSION 2.0');
+    alert('Parse page VERSION 2.0 loaded');
+    
     // Get citations from sessionStorage
     const citationsText = sessionStorage.getItem('citations');
     if (!citationsText) {
@@ -35,10 +38,12 @@ export default function Parse() {
 
     // Parse citations
     const parsed = parseCitations(citationsText);
+    console.log('Parsed citations:', parsed);
     setCitations(parsed);
   }, [setLocation]);
 
   const detectCategory = (text: string, previousCategory?: CitationCategory): CitationCategory => {
+    console.log('🔥 detectCategory VERSION 3.0');
     const trimmed = text.trim();
     const lowerText = trimmed.toLowerCase();
     
@@ -50,11 +55,14 @@ export default function Parse() {
     // Article/Book detection patterns (CHECK FIRST before case detection):
     // Author, 'Title' (Year) Journal pattern
     // Must have: quoted title + year in parentheses + journal/publication info
-    const hasQuotedTitle = /'[^']+'/.test(text) || /[''][^'']+['']/.test(text);
+    const quoteRegex = /[\u0027\u2018\u2019\u201C\u201D][^\u0027\u2018\u2019\u201C\u201D]+[\u0027\u2018\u2019\u201C\u201D]/.toString();
+    const hasQuotedTitle = /[\u0027\u2018\u2019\u201C\u201D][^\u0027\u2018\u2019\u201C\u201D]+[\u0027\u2018\u2019\u201C\u201D]/.test(text);
     const hasYearInParens = /\(\d{4}\)/.test(text);
     const hasJournalInfo = /\d+\s*\(\d+\)|Vol\s*\d+|\d+\s+[A-Z][a-z]+\s+[A-Z]/i.test(text);
     
-    console.log('[Detection]', text.substring(0, 50), { hasQuotedTitle, hasYearInParens, hasJournalInfo });
+    console.log('[Detection]', text.substring(0, 50));
+    console.log('  Regex:', quoteRegex);
+    console.log('  Results:', { hasQuotedTitle, hasYearInParens, hasJournalInfo });
     
     if (hasQuotedTitle && hasYearInParens && (hasJournalInfo || /,\s*\d+\.?$/.test(text))) {
       console.log('→ ARTICLE');
@@ -207,10 +215,15 @@ export default function Parse() {
       </nav>
 
       {/* Main Content */}
-      <div className="container max-w-6xl mx-auto px-4 py-16">
+      <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">Review Parsed Citations</h1>
-          <p className="text-slate-600">Step 2 of 3: Review categories and edit citations before verification</p>
+          <div className="flex items-center gap-4 mb-4">
+            <Button variant="outline" onClick={() => setLocation('/')}>
+              ← Back to Home
+            </Button>
+          </div>
+          <h1 className="text-4xl font-bold mb-2">Review Parsed Citations</h1>
+          <p className="text-muted-foreground">Step 2 of 3: Review categories and edit citations before verification</p>
         </div>
 
         {/* Statistics */}
