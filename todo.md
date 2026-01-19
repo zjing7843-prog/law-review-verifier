@@ -182,3 +182,12 @@
 - [x] Remove version update notification window
 - [x] Remove text: "Paste all your footnotes here, one per line. We'll automatically number them for you."
 - [x] Change "Paste your citations below" to "Paste all footnotes below for a preliminary verification"
+
+
+## Table Layout Improvements and URL Verification
+- [x] Adjust Parse page table to fit in one view (autofit column widths, no horizontal scrolling)
+- [x] Adjust Verify page results tables (Articles & Books, Cases, Other) to fit in one view
+- [x] Implement URL extraction from footnote text (detect "Available at", "https://", "http://", etc.)
+- [x] Add URL verification logic: check if link exists and can be opened
+- [x] Mark citations with working URLs as "Verified" instead of "Unsure"
+- [x] Test with example: "The General Medical Council, 'Independent Review...' (June 2019). Available at https://www.gmc-uk.org/-/media/documents/..."

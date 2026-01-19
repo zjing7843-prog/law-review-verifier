@@ -267,10 +267,10 @@ export default function Parse() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-16">No.</TableHead>
-                  <TableHead className="w-40">Category</TableHead>
-                  <TableHead>Full Citation</TableHead>
-                  <TableHead className="w-32">Actions</TableHead>
+                  <TableHead className="w-12">No.</TableHead>
+                  <TableHead className="w-32">Category</TableHead>
+                  <TableHead className="min-w-0">Full Citation</TableHead>
+                  <TableHead className="w-24">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -322,7 +322,7 @@ export default function Parse() {
                       <>
                         <TableCell className="font-medium">{citation.number}</TableCell>
                         <TableCell>{getCategoryBadge(citation.category)}</TableCell>
-                        <TableCell className="text-sm">{citation.fullText}</TableCell>
+                        <TableCell className="text-sm break-words">{citation.fullText}</TableCell>
                         <TableCell>
                           <div className="flex gap-1">
                             <Button onClick={() => handleEdit(citation)} size="sm" variant="ghost" className="h-8 w-8 p-0">
