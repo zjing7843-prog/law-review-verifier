@@ -106,15 +106,23 @@ export default function Verify() {
             // Simulate search delay
             await new Promise((resolve) => setTimeout(resolve, 1000));
             
-            // For now, use a simple heuristic: if the citation has typical academic markers, mark as found
-            // In production, this would call a real search API
-            const hasYear = /\(\d{4}\)/.test(citation.fullText);
+            // Extract components for verification
+            const yearMatch = citation.fullText.match(/(\d{4})/);
+            const hasYear = yearMatch !== null;
             const hasJournal = /\d+/.test(citation.fullText);
             const hasAuthor = /[A-Z][a-z]+/.test(citation.fullText);
+            const hasTitle = /['"]/.test(citation.fullText);
             
-            if (hasYear && (hasJournal || hasAuthor)) {
+            // Check for potential hallucination: components exist but might not match
+            // In a real implementation, this would verify against actual search results
+            if (hasYear && hasTitle && hasAuthor && hasJournal) {
               status = "verified";
               reason = "Found via search";
+              link = searchUrl;
+            } else if (hasAuthor || hasTitle) {
+              // Has some components but not all - could be incomplete or wrong year
+              status = "unsure";
+              reason = "Incomplete info";
               link = searchUrl;
             } else {
               status = "unsure";
@@ -124,15 +132,20 @@ export default function Verify() {
           } catch (error) {
             status = "unsure";
             reason = "Search failed";
+            link = undefined;
           }
         } else {
-          // For Case category, use mock verification
+          // For Case category, use mock verification with search link
+          const searchQuery = encodeURIComponent(citation.fullText);
+          const searchUrl = `https://www.google.com/search?q=${searchQuery}`;
+          
           // Hallucinated should be rare (only when 90%+ sure it doesn't exist)
           const rand = Math.random();
           status = rand > 0.7 ? "verified" : rand > 0.95 ? "hallucinated" : "unsure";
           reason = status === "verified" ? "" : 
                   status === "hallucinated" ? "Citation not found" :
                   "Needs manual check";
+          link = status === "unsure" ? searchUrl : undefined;
         }
         
         results.push({
@@ -301,11 +314,14 @@ export default function Verify() {
     return !hasIbid && !hasCrossRef;
   }).length;
 
+  // Calculate statistics based on ALL citations (including repeats)
+  // verificationResults includes all citations with inherited status for repeats
+  const totalCitations = citations.length; // All citations including ibid and cross-references
   const verifiedCount = verificationResults.filter((r) => r.status === "verified").length;
   const hallucinatedCount = verificationResults.filter((r) => r.status === "hallucinated").length;
   const unsureCount = verificationResults.filter((r) => r.status === "unsure").length;
   const correctnessPercentage =
-    verificationResults.length > 0 ? ((verifiedCount / verificationResults.length) * 100).toFixed(1) : 0;
+    totalCitations > 0 ? ((verifiedCount / totalCitations) * 100).toFixed(1) : 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50">
@@ -397,7 +413,7 @@ export default function Verify() {
               <Card className="p-6 border border-slate-200">
                 <div className="text-center">
                   <div className="text-3xl font-bold text-blue-600 mb-1">
-                    {verificationResults.length}
+                    {totalCitations}
                   </div>
                   <p className="text-sm text-slate-600">Total Citations</p>
                 </div>
@@ -436,7 +452,7 @@ export default function Verify() {
                     Overall Correctness
                   </h3>
                   <p className="text-slate-600">
-                    {verifiedCount} out of {verificationResults.length} citations verified
+                    {verifiedCount} out of {totalCitations} citations verified
                   </p>
                 </div>
                 <div className="text-right">

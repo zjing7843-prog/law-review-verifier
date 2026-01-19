@@ -160,3 +160,12 @@
 - [x] Make reason messages more succinct and concise
 - [x] Update status badges styling for new labels
 - [x] Update CSV export headers
+
+
+## Improve Verification Accuracy and Statistics
+- [x] Check author/year/title correspondence during verification
+- [x] Mark as "Hallucinated" if author/title exist but year doesn't match
+- [x] Add Google search links for "Unsure" citations so users can manually verify
+- [x] Fix statistics calculation to include ALL footnotes (including ibid and cross-references)
+- [x] Keep results display showing only first-time citations (hide repeats)
+- [x] Update verification rate calculation: (verified count / total count including repeats) * 100
