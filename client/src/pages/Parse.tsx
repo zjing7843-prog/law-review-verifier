@@ -40,7 +40,7 @@ export default function Parse() {
   }, [setLocation]);
 
   const detectCategory = (text: string, previousCategory?: CitationCategory): CitationCategory => {
-    console.log('🔥 detectCategory VERSION 3.0');
+    console.log('🔥 detectCategory VERSION 4.0 - Improved Article/Case Detection');
     const trimmed = text.trim();
     const lowerText = trimmed.toLowerCase();
     
@@ -49,46 +49,95 @@ export default function Parse() {
       return previousCategory || "other";
     }
     
-    // Article/Book detection patterns (CHECK FIRST before case detection):
-    // Author, 'Title' (Year) Journal pattern
-    // Must have: quoted title + year in parentheses + journal/publication info
-    const quoteRegex = /[\u0027\u2018\u2019\u201C\u201D][^\u0027\u2018\u2019\u201C\u201D]+[\u0027\u2018\u2019\u201C\u201D]/.toString();
-    const hasQuotedTitle = /[\u0027\u2018\u2019\u201C\u201D][^\u0027\u2018\u2019\u201C\u201D]+[\u0027\u2018\u2019\u201C\u201D]/.test(text);
-    const hasYearInParens = /\(\d{4}\)/.test(text);
-    const hasJournalInfo = /\d+\s*\(\d+\)|Vol\s*\d+|\d+\s+[A-Z][a-z]+\s+[A-Z]/i.test(text);
+    // Strip common prefixes that don't affect categorization
+    let cleanedText = text;
+    const prefixPatterns = [
+      /^See\s+/i,
+      /^For\s+a\s+detailed\s+examination\s+see\s+also\s+/i,
+      /^For\s+example,?\s+/i,
+      /^Compare\s+/i,
+      /^Cf\.?\s+/i,
+      /^E\.g\.?,?\s+/i
+    ];
     
-    console.log('[Detection]', text.substring(0, 50));
-    console.log('  Regex:', quoteRegex);
-    console.log('  Results:', { hasQuotedTitle, hasYearInParens, hasJournalInfo });
-    
-    if (hasQuotedTitle && hasYearInParens && (hasJournalInfo || /,\s*\d+\.?$/.test(text))) {
-      console.log('→ ARTICLE');
-      return "article";
+    for (const pattern of prefixPatterns) {
+      cleanedText = cleanedText.replace(pattern, '');
     }
     
-    // Case detection patterns:
-    // 1. Court citations: [2017] EWCA Crim 1168, [1994] 3 ALL E R 79, [1995] 1 AC 171
-    // 2. Party names with "v": R v Adomako, Smith v Jones
-    // 3. Paragraph references: "at [56]"
-    // 4. Case names ending with year in brackets or parentheses
+    // PRIORITY 1: EU Case detection (most specific)
+    // Pattern: "Case C-22/98" or "EU:C:1999:419"
     if (
-      /\[\d{4}\]/.test(text) || // Any [YYYY] format is likely a case citation
-      /\b[A-Z][a-z]*\s+v\.?\s+[A-Z]/i.test(text) || // "R v Adomako" or "Smith v. Jones"
-      /\bat\s+\[\d+\]/i.test(text) || // "at [56]"
-      /\(\d{4}\)\s+\d+\s+[A-Z]{2,}/i.test(text) // "(2019) 22 HKCFAR"
+      /\bCase\s+[A-Z]-?\s*\d+\/\d+/i.test(cleanedText) || // "Case C-22/98" or "Case C- 22/98"
+      /\bEU:[A-Z]:\d{4}:\d+/i.test(cleanedText) // "EU:C:1999:419"
     ) {
+      console.log('→ CASE (EU format)');
       return "case";
     }
     
-    // Other detection patterns:
+    // PRIORITY 2: Article/Book detection (before general case detection)
+    // Pattern: Author name(s) + Title (quoted or book format) + Year + optional journal/page info
+    // Examples:
+    // - "Julian Nowag, Environmental Integration in Competition and Free-Movement Laws (OUP 2017) 1-12"
+    // - "Julian Nowag and Alexandra Teorell, 'Beyond Balancing: Sustainability and Competition Law' (2020) Concurrences..."
+    // - "Okeoghene Odudu, 'The Meaning of Undertaking Within 81 EC' (2004–05) 7 CYELS, 214"
+    
+    const hasQuotedTitle = /[\u0027\u2018\u2019\u201C\u201D][^\u0027\u2018\u2019\u201C\u201D]+[\u0027\u2018\u2019\u201C\u201D]/.test(cleanedText);
+    const hasYearInParens = /\((?:[A-Z]{2,}\s+)?\d{4}(?:[-–]\d{2,4})?\)/.test(cleanedText); // Supports (2004), (2004-05), or (OUP 2017)
+    const hasBookFormat = /\([A-Z]{2,}\s+\d{4}\)/.test(cleanedText); // (OUP 2017)
+    const hasBookTitle = /,\s+[A-Z][^,]+\([A-Z]{2,}\s+\d{4}\)/.test(cleanedText); // Author, Book Title (OUP 2017)
+    
+    // Author pattern: starts with capitalized name(s), possibly with "and"
+    const hasAuthorPattern = /^[A-Z][a-z]+(?:\s+[A-Z]{1,2}\.?)?(?:\s+[A-Z][a-z]+)?(?:\s+and\s+[A-Z][a-z]+(?:\s+[A-Z]{1,2}\.?)?(?:\s+[A-Z][a-z]+)?)?\s*,/i.test(cleanedText);
+    
+    // Journal/page info patterns
+    const hasJournalInfo = /\d+\s*\(\d+\)|Vol\.?\s*\d+|\d+\s+[A-Z][A-Z]+|,\s*\d+[-–]?\d*\.?$/.test(cleanedText);
+    
+    console.log('[Detection]', cleanedText.substring(0, 80));
+    console.log('  Article indicators:', { hasQuotedTitle, hasYearInParens, hasBookFormat, hasBookTitle, hasAuthorPattern, hasJournalInfo });
+    
+    // Article/Book: Must have author pattern + (quoted title OR book format OR book title) + year
+    if (hasAuthorPattern && (hasQuotedTitle || hasBookFormat || hasBookTitle) && hasYearInParens) {
+      console.log('→ ARTICLE/BOOK');
+      return "article";
+    }
+    
+    // Also detect books without author pattern but with clear book format
+    // Example: "Environmental Integration in Competition and Free-Movement Laws (OUP 2017)"
+    if (hasBookFormat && hasYearInParens && !(/\bCase\s+[A-Z]-?\s*\d+/.test(cleanedText))) {
+      console.log('→ ARTICLE/BOOK (book format detected)');
+      return "article";
+    }
+    
+    // PRIORITY 3: General case detection patterns
+    // 1. Court citations: [2017] EWCA Crim 1168, [1994] 3 ALL E R 79, [1995] 1 AC 171
+    // 2. Party names with "v": R v Adomako, Smith v Jones
+    // 3. Paragraph references: "at [56]"
+    // 4. Case numbers with hyphens/slashes: 22/98, C-123/45
+    if (
+      /\[\d{4}\]/.test(cleanedText) || // Any [YYYY] format
+      /\b[A-Z][a-z]*\s+v\.?\s+[A-Z]/i.test(cleanedText) || // "R v Adomako" or "Smith v. Jones"
+      /\bat\s+\[\d+\]/i.test(cleanedText) || // "at [56]"
+      /\bpara\.?\s+\d+/i.test(cleanedText) || // "para 26"
+      /\(\d{4}\)\s+\d+\s+[A-Z]{2,}/i.test(cleanedText) // "(2019) 22 HKCFAR"
+    ) {
+      // BUT: Don't classify as case if it has strong article indicators
+      if (hasAuthorPattern && hasQuotedTitle) {
+        console.log('→ ARTICLE (has case-like pattern but stronger article indicators)');
+        return "article";
+      }
+      console.log('→ CASE (general format)');
+      return "case";
+    }
+    
+    // PRIORITY 4: Other detection patterns
     // 1. URLs (https:// or http://)
     // 2. Department/Organization names
     // 3. Government publications
     if (
-      /https?:\/\//i.test(text) ||
-      /^Department\s+of/i.test(text) ||
-      /Government/i.test(text) ||
-      /Available\s+at/i.test(text)
+      /https?:\/\//i.test(cleanedText) ||
+      /^Department\s+of/i.test(cleanedText) ||
+      /Government/i.test(cleanedText) ||
+      /Available\s+at/i.test(cleanedText)
     ) {
       return "other";
     }

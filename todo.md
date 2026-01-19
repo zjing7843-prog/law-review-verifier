@@ -241,3 +241,15 @@
 - [x] Add Indian domains (sci.gov.in, indiankanoon.org)
 - [x] Add EU domains (curia.europa.eu, eur-lex.europa.eu)
 - [x] Add international court domains (icj-cij.org, icc-cpi.int, echr.coe.int)
+
+
+## Improve Article/Book vs Case Categorization
+- [x] Handle articles with explanatory text prefix (e.g., "See Julian Nowag...", "For a detailed examination see also...")
+- [x] Detect article pattern: Author Name + Title (quoted or in book format) + Year + optional page numbers
+- [x] Improve case detection for EU cases (Case C-###, EU:C:YYYY:###)
+- [x] Prioritize case patterns with hyphens/slashes in numbers (C-22/98, etc.)
+- [x] Test with user examples:
+  * "See Julian Nowag, Environmental Integration in Competition and Free-Movement Laws (OUP 2017) 1-12..." ✅
+  * "For a detailed examination see also Julian Nowag and Alexandra Teorell, 'Beyond Balancing: Sustainability and Competition Law' (2020)..." ✅
+  * "Okeoghene Odudu, 'The Meaning of Undertaking Within 81 EC' (2004–05) 7 CYELS, 214" ✅
+  * "Case C- 22/98 Becu and others EU:C:1999:419, para 26." ✅
