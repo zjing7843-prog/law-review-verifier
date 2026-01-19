@@ -176,3 +176,9 @@
 - [x] Only show first-time citations in Articles & Books, Cases, and Other tables
 - [x] Keep repeat citations in statistics calculation (already working)
 - [x] Test: Citations #4 and #6 (ibid) should NOT appear in Cases table
+
+
+## UI Text Updates
+- [x] Remove version update notification window
+- [x] Remove text: "Paste all your footnotes here, one per line. We'll automatically number them for you."
+- [x] Change "Paste your citations below" to "Paste all footnotes below for a preliminary verification"

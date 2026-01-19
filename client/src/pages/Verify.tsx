@@ -218,8 +218,6 @@ export default function Verify() {
       
       // Store results for later
       sessionStorage.setItem('verificationResults', JSON.stringify(allResults));
-      
-      toast.success("Verification complete!");
     } catch (error) {
       toast.error("Verification failed. Please try again.");
     } finally {

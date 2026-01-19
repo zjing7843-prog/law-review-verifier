@@ -47,7 +47,7 @@ export default function Home() {
             Verify Your Footnotes
           </h1>
           <p className="text-lg text-slate-600">
-            Paste your citations below and we'll organize them into a table for verification
+            Paste all footnotes below for a preliminary verification
           </p>
         </div>
 
@@ -57,9 +57,6 @@ export default function Home() {
             <label className="block text-sm font-medium text-slate-700 mb-2">
               Paste Your Citations
             </label>
-            <p className="text-sm text-slate-500 mb-4">
-              Paste all your footnotes here, one per line. We'll automatically number them for you.
-            </p>
             <Textarea
               value={citations}
               onChange={(e) => setCitations(e.target.value)}
