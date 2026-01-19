@@ -21,22 +21,7 @@ export default function Home() {
     setLocation("/parse");
   };
 
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 flex items-center justify-center">
-        <Card className="p-8 max-w-md text-center shadow-xl">
-          <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center mx-auto mb-4">
-            <CheckCircle2 className="w-8 h-8 text-white" />
-          </div>
-          <h2 className="text-2xl font-bold mb-4">Law Review Verifier</h2>
-          <p className="text-slate-600 mb-6">Please sign in to verify your footnotes</p>
-          <Button asChild size="lg" className="w-full">
-            <a href={getLoginUrl()}>Sign In</a>
-          </Button>
-        </Card>
-      </div>
-    );
-  }
+  // Removed authentication requirement
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50">
@@ -50,7 +35,7 @@ export default function Home() {
             <span className="font-semibold text-slate-900">Law Review Verifier</span>
           </div>
           <div className="text-sm text-slate-600">
-            Welcome, {user?.name}
+            Citation Verification Tool
           </div>
         </div>
       </nav>

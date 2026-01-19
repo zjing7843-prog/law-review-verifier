@@ -70,3 +70,21 @@
 - [x] Add "ibid" handling to inherit category from previous citation
 - [x] Test with real legal citations provided by user
 - [x] Fix [YYYY] # pattern detection (e.g., [1995] 1 AC 171)
+
+
+## Bug: Overly Broad Case Detection
+- [ ] Fix [YYYY] pattern that catches articles with year citations
+- [ ] Articles must be detected BEFORE cases to avoid false positives
+- [ ] Improve case detection to require more specific patterns
+- [ ] Test with user's 60-citation dataset to verify 0 articles bug is fixed
+
+
+## Remove Authentication
+- [x] Remove auth check from Home page
+- [x] Remove auth check from Parse page
+- [x] Make app accessible without login
+
+## Debug Article Detection
+- [x] Check if Parse.tsx changes are actually being served to browser
+- [x] Add console.log to see what category is being assigned
+- [ ] Test in actual browser with real citations

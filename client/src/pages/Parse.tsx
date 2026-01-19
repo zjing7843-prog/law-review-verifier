@@ -26,11 +26,6 @@ export default function Parse() {
   const [editValues, setEditValues] = useState<ParsedCitation | null>(null);
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      setLocation("/");
-      return;
-    }
-
     // Get citations from sessionStorage
     const citationsText = sessionStorage.getItem('citations');
     if (!citationsText) {
@@ -41,7 +36,7 @@ export default function Parse() {
     // Parse citations
     const parsed = parseCitations(citationsText);
     setCitations(parsed);
-  }, [isAuthenticated, setLocation]);
+  }, [setLocation]);
 
   const detectCategory = (text: string, previousCategory?: CitationCategory): CitationCategory => {
     const trimmed = text.trim();
@@ -50,6 +45,20 @@ export default function Parse() {
     // Handle "ibid" - inherit category from previous citation
     if (lowerText === 'ibid' || lowerText.startsWith('ibid.') || lowerText.startsWith('ibid,')) {
       return previousCategory || "other";
+    }
+    
+    // Article/Book detection patterns (CHECK FIRST before case detection):
+    // Author, 'Title' (Year) Journal pattern
+    // Must have: quoted title + year in parentheses + journal/publication info
+    const hasQuotedTitle = /'[^']+'/.test(text) || /[''][^'']+['']/.test(text);
+    const hasYearInParens = /\(\d{4}\)/.test(text);
+    const hasJournalInfo = /\d+\s*\(\d+\)|Vol\s*\d+|\d+\s+[A-Z][a-z]+\s+[A-Z]/i.test(text);
+    
+    console.log('[Detection]', text.substring(0, 50), { hasQuotedTitle, hasYearInParens, hasJournalInfo });
+    
+    if (hasQuotedTitle && hasYearInParens && (hasJournalInfo || /,\s*\d+\.?$/.test(text))) {
+      console.log('→ ARTICLE');
+      return "article";
     }
     
     // Case detection patterns:
@@ -64,17 +73,6 @@ export default function Parse() {
       /\(\d{4}\)\s+\d+\s+[A-Z]{2,}/i.test(text) // "(2019) 22 HKCFAR"
     ) {
       return "case";
-    }
-    
-    // Article/Book detection patterns:
-    // Author, 'Title' (Year) Journal pattern
-    // Must have: quoted title + year in parentheses + journal/publication info
-    const hasQuotedTitle = /'[^']+'/.test(text) || /[''][^'']+['']/.test(text);
-    const hasYearInParens = /\(\d{4}\)/.test(text);
-    const hasJournalInfo = /\d+\s*\(\d+\)|Vol\s*\d+|\d+\s+[A-Z][a-z]+\s+[A-Z]/i.test(text);
-    
-    if (hasQuotedTitle && hasYearInParens && (hasJournalInfo || /,\s*\d+\.?$/.test(text))) {
-      return "article";
     }
     
     // Other detection patterns:
