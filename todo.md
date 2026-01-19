@@ -297,3 +297,11 @@
 - [x] Weight official court websites, government databases, and law libraries higher
 - [x] Add source authority indicators (official/authoritative/general) in verification results
 - [x] Display authority badges in verification results for editor review
+
+
+## Expand Repeat Citation Detection
+- [x] Add "supra" detection (e.g., "Smith, supra note 5", "See supra Part II")
+- [x] Add "Id" and "Id." detection (e.g., "Id.", "Id. at 123")
+- [x] Keep existing "ibid" and "(n X)" detection
+- [x] Test with real legal citations containing all cross-reference markers (9 citations → 3 unique, 6 filtered)
+- [x] Ensure these citations are filtered out from verification (no web search needed)

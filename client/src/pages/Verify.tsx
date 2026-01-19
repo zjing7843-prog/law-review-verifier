@@ -58,6 +58,24 @@ export default function Verify() {
       return { isRepeat: true };
     }
     
+    // Check for "Id" or "Id." references (case-sensitive, common in legal citations)
+    // Matches: Id, Id., Id. at 123, etc.
+    // Note: Must be at the start or after punctuation to avoid matching words containing "id"
+    if (/(^|\s|\()Id\.?(\s|$|,|at)/i.test(text)) {
+      return { isRepeat: true };
+    }
+    
+    // Check for "supra" references (case-insensitive)
+    // Matches: supra, supra note 5, See supra Part II, Smith, supra, etc.
+    if (/\bsupra\b/i.test(text)) {
+      // Try to extract footnote number if present (e.g., "supra note 5")
+      const supraMatch = text.match(/supra\s+note\s+(\d+)/i);
+      if (supraMatch) {
+        return { isRepeat: true, referencesFootnote: supraMatch[1] };
+      }
+      return { isRepeat: true };
+    }
+    
     // Check for cross-reference pattern "(n [number])" (case-insensitive)
     // Matches: (n 1), (N 1), (n1), etc.
     const crossRefMatch = text.match(/\([nN]\s*(\d+)\)/i);
