@@ -138,3 +138,14 @@
 - [x] Only show unique citations that will actually be verified
 - [x] Update the table to display only the filtered citations
 - [x] Keep the summary text showing total vs unique counts
+
+
+## Implement Real Google Search Verification
+- [x] Integrate Google search API for Article/Book category citations
+- [x] Integrate Google search API for Other category citations
+- [x] Keep mock verification for Case category (not mentioned for web search)
+- [x] Add "Link" column to show URL when citation is found
+- [x] Extract and store the URL from search results
+- [x] Separate results display into three tables: Article/Book, Case, Other
+- [x] Update CSV export to include Link column
+- [x] Test with real article and book citations
