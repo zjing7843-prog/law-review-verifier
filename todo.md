@@ -191,3 +191,8 @@
 - [x] Add URL verification logic: check if link exists and can be opened
 - [x] Mark citations with working URLs as "Verified" instead of "Unsure"
 - [x] Test with example: "The General Medical Council, 'Independent Review...' (June 2019). Available at https://www.gmc-uk.org/-/media/documents/..."
+
+
+## Remove Debug Alert Window
+- [x] Find and remove "Parse page VERSION 2.0 loaded" alert/window from Parse page
+- [x] Check for any other debug alerts or console.log statements

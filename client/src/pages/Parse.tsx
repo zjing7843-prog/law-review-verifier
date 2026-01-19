@@ -26,9 +26,6 @@ export default function Parse() {
   const [editValues, setEditValues] = useState<ParsedCitation | null>(null);
 
   useEffect(() => {
-    console.log('🔥 Parse page loaded - VERSION 2.0');
-    alert('Parse page VERSION 2.0 loaded');
-    
     // Get citations from sessionStorage
     const citationsText = sessionStorage.getItem('citations');
     if (!citationsText) {
