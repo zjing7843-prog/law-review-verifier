@@ -105,8 +105,15 @@ const AUTHORITATIVE_DOMAINS = [
  * Extract URL from citation text if present
  */
 function extractUrlFromCitation(citationText: string): string | null {
-  const urlMatch = citationText.match(/https?:\/\/[^\s)]+/);
-  return urlMatch ? urlMatch[0] : null;
+  // Match URLs but exclude trailing punctuation like >, ), ], etc.
+  const urlMatch = citationText.match(/https?:\/\/[^\s)>\]]+/);
+  if (!urlMatch) return null;
+  
+  // Clean up trailing punctuation that might have been captured
+  let url = urlMatch[0];
+  url = url.replace(/[>)\].,;:]+$/, ''); // Remove trailing punctuation
+  
+  return url;
 }
 
 /**

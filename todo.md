@@ -541,3 +541,14 @@
 - [x] Ignore access dates when verifying links (only check if URL exists)
 - [x] Mark as verified if link is accessible, unsure if broken/restricted
 - [x] Add 10-second timeout for URL checks to prevent hanging
+
+
+## Fix Reason Column Text Overlapping (Critical)
+- [x] Add word-break-all CSS to Reason column TableCell elements
+- [x] Change from break-word to break-all for aggressive wrapping
+- [x] Test with long verification reasons (European Commission citation tested successfully)
+
+## Fix Verification Interruption with Large Batches (Critical)
+- [x] Fix URL extraction regex to exclude trailing > and punctuation
+- [x] Add better error logging for URL check failures
+- [x] Test with 10 citations to ensure completion without interruption (all 9 unique citations completed successfully in 4 minutes)

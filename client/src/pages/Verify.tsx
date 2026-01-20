@@ -494,9 +494,9 @@ export default function Verify() {
                                     </span>
                                   )}
                                 </TableCell>
-                                <TableCell className="text-sm text-slate-600 w-[30%] max-w-0" style={{wordBreak: 'break-word', overflowWrap: 'break-word'}}>
+                                <TableCell className="text-sm text-slate-600 w-[30%] max-w-0" style={{wordBreak: 'break-all', overflowWrap: 'anywhere'}}>
                                   <div className="space-y-1">
-                                    <div className="break-words" style={{wordBreak: 'break-word'}}>{result.reason}</div>
+                                    <div style={{wordBreak: 'break-all', overflowWrap: 'anywhere'}}>{result.reason}</div>
                                     {result.authority && result.confidence > 0 && (
                                       <div className="flex items-center gap-2">
                                         {getAuthorityBadge(result.authority)}
@@ -624,9 +624,9 @@ export default function Verify() {
                                 </span>
                               )}
                             </TableCell>
-                            <TableCell className="text-sm text-slate-600 w-[30%] max-w-0" style={{wordBreak: 'break-word', overflowWrap: 'break-word'}}>
+                            <TableCell className="text-sm text-slate-600 w-[30%] max-w-0" style={{wordBreak: 'break-all', overflowWrap: 'anywhere'}}>
                               <div className="space-y-1">
-                                <div className="break-words" style={{wordBreak: 'break-word'}}>{result.reason}</div>
+                                <div style={{wordBreak: 'break-all', overflowWrap: 'anywhere'}}>{result.reason}</div>
                                 {result.authority && result.confidence > 0 && (
                                   <div className="flex items-center gap-2">
                                     {getAuthorityBadge(result.authority)}
