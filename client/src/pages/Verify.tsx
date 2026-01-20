@@ -538,7 +538,7 @@ export default function Verify() {
             {/* Statistics */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <Card className="p-4">
-                <div className="text-2xl font-bold text-slate-900">{citations.length}</div>
+                <div className="text-2xl font-bold text-slate-900">{verifiedCount + hallucinatedCount + unsureCount}</div>
                 <div className="text-sm text-slate-600">Total Citations</div>
               </Card>
               <Card className="p-4">
@@ -554,21 +554,6 @@ export default function Verify() {
                 <div className="text-sm text-slate-600">Unsure</div>
               </Card>
             </div>
-
-            {/* Overall Correctness */}
-            <Card className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-lg font-semibold text-slate-900 mb-1">Overall Correctness</h2>
-                  <p className="text-sm text-slate-600">
-                    {verifiedCount} out of {citations.length} citations verified
-                  </p>
-                </div>
-                <div className="text-4xl font-bold text-slate-900">
-                  {citations.length > 0 ? Math.round((verifiedCount / citations.length) * 100) : 0}%
-                </div>
-              </div>
-            </Card>
 
             {/* Results by category */}
             {Object.entries(resultsByCategory).map(([category, results]) => {

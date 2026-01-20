@@ -609,3 +609,10 @@
 - [x] Ensure Link column stays compact but doesn't get overlapped (w-24 fixed)
 - [x] Test with long reason text like "Link provided but not accessible (may be broken or require authentication)"
 - [x] Changed from percentage widths to fixed/min widths for proper auto-sizing
+
+
+## Fix Statistics Calculation (CRITICAL)
+- [x] Total Citations should show count of citations that went to verification (not all parsed)
+- [x] Should be: verifiedCount + hallucinatedCount + unsureCount
+- [x] Currently showing all parsed citations including filtered ones
+- [x] Remove "Overall Correctness" card entirely from results page
