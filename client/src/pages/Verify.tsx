@@ -494,11 +494,11 @@ export default function Verify() {
                                     </span>
                                   )}
                                 </TableCell>
-                                <TableCell className="text-sm text-slate-600 w-[30%] max-w-0" style={{wordBreak: 'break-all', overflowWrap: 'anywhere'}}>
+                                <TableCell className="text-sm text-slate-600 w-[30%]" style={{wordBreak: 'break-word', overflowWrap: 'break-word', maxWidth: '30%'}}>
                                   <div className="space-y-1">
-                                    <div style={{wordBreak: 'break-all', overflowWrap: 'anywhere'}}>{result.reason}</div>
+                                    <div className="break-words">{result.reason}</div>
                                     {result.authority && result.confidence > 0 && (
-                                      <div className="flex items-center gap-2">
+                                      <div className="flex items-center gap-2 flex-wrap">
                                         {getAuthorityBadge(result.authority)}
                                         <span className="text-xs text-gray-500">
                                           ({result.confidence}% confidence)
@@ -624,11 +624,11 @@ export default function Verify() {
                                 </span>
                               )}
                             </TableCell>
-                            <TableCell className="text-sm text-slate-600 w-[30%] max-w-0" style={{wordBreak: 'break-all', overflowWrap: 'anywhere'}}>
+                            <TableCell className="text-sm text-slate-600 w-[30%]" style={{wordBreak: 'break-word', overflowWrap: 'break-word', maxWidth: '30%'}}>
                               <div className="space-y-1">
-                                <div style={{wordBreak: 'break-all', overflowWrap: 'anywhere'}}>{result.reason}</div>
+                                <div className="break-words">{result.reason}</div>
                                 {result.authority && result.confidence > 0 && (
-                                  <div className="flex items-center gap-2">
+                                  <div className="flex items-center gap-2 flex-wrap">
                                     {getAuthorityBadge(result.authority)}
                                     <span className="text-xs text-gray-500">
                                       ({result.confidence}% confidence)

@@ -569,3 +569,19 @@
 - [x] Test: public user clicks Settings → sees "Enter access code" modal
 - [x] Test: correct code entered → access Settings page and use Manus LLM
 - [x] Test: wrong code entered → show error message
+
+
+## Fix Document Upload Failure
+- [ ] Investigate "Failed to process document" error
+- [ ] Check server logs for error details
+- [ ] Review document processing endpoint (uploadFile, processDocument)
+- [ ] Test with Word and PDF files
+- [ ] Fix any errors in file processing logic
+- [ ] Verify footnote extraction works correctly
+
+
+## Fix Text Overlapping in Results Tables (Critical)
+- [x] Fix Reason column text overlapping View link in all result tables
+- [x] Ensure proper cell boundaries and text containment
+- [x] Test with long verification reasons to confirm no overlap
+- [x] Apply fix to Cases, Books, Statutes, Policy Papers tables
