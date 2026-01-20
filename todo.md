@@ -356,3 +356,12 @@
 - [x] Change loading message from "Categorizing citations with AI..." to "Classifying footnotes to allow targeted verification"
 - [x] Make citation input box smaller (reduce height from 400px to 200px)
 - [x] Update placeholder text to show example citations with proper formatting
+
+
+## Black and White Minimalist Redesign
+- [x] Update global CSS theme colors to black/white/gray palette
+- [x] Remove blue gradients and replace with solid white background
+- [x] Update all component badges to grayscale (black, gray-900 to gray-100)
+- [x] Update buttons to black/white styling
+- [x] Update navigation and cards to minimalist design
+- [x] Ensure modern typography with clean fonts
