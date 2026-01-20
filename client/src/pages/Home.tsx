@@ -3,7 +3,8 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { CheckCircle2, ArrowRight, Settings } from "lucide-react";
+import { CheckCircle2, ArrowRight, Settings, Upload, FileText, Loader2 } from "lucide-react";
+import { trpc } from "@/lib/trpc";
 import { useLocation } from "wouter";
 import { getLoginUrl } from "@/const";
 
@@ -11,6 +12,83 @@ export default function Home() {
   const { isAuthenticated, user } = useAuth();
   const [, setLocation] = useLocation();
   const [citations, setCitations] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  
+  const uploadMutation = trpc.documents.upload.useMutation();
+  const extractMutation = trpc.documents.extractFootnotes.useMutation();
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      await processFile(file);
+    }
+  };
+
+  const handleFileDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      await processFile(file);
+    }
+  };
+
+  const processFile = async (file: File) => {
+    // Validate file type
+    const fileType = file.name.endsWith('.docx') ? 'docx' : file.name.endsWith('.pdf') ? 'pdf' : null;
+    
+    if (!fileType) {
+      setUploadError('Please upload a .docx or .pdf file');
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadError(null);
+
+    try {
+      // For now, show a message that file upload requires authentication
+      // In a real implementation, we would:
+      // 1. Upload file to S3
+      // 2. Call backend to extract footnotes
+      // 3. Populate the textarea with extracted text
+      
+      if (!isAuthenticated) {
+        setUploadError('Please sign in to upload documents. You can still paste citations manually.');
+        return;
+      }
+
+      // Create a temporary URL for the file (for demo purposes)
+      const fileUrl = URL.createObjectURL(file);
+      
+      // Upload document metadata
+      const uploadResult = await uploadMutation.mutateAsync({
+        fileName: file.name,
+        fileType,
+        fileUrl, // In production, this would be the S3 URL after upload
+      });
+
+      // Extract footnotes from the uploaded document
+      const extractResult = await extractMutation.mutateAsync({
+        documentId: uploadResult.id,
+      });
+
+      // Populate textarea with extracted footnotes
+      if (extractResult.footnotes && extractResult.footnotes.length > 0) {
+        const footnoteTexts = extractResult.footnotes.map((f: any) => f.text).join('\n');
+        setCitations(footnoteTexts);
+      } else {
+        setUploadError('No footnotes found in the document. Please check the file format or paste citations manually.');
+      }
+    } catch (error) {
+      console.error('Error processing file:', error);
+      setUploadError('Failed to process document. Please try again or paste citations manually.');
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const handleParse = () => {
     if (!citations.trim()) {
@@ -57,10 +135,13 @@ export default function Home() {
 
         {/* Paste Area */}
         <Card className="p-8 shadow-lg">
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-slate-700 mb-2">
-              Paste Your Citations
-            </label>
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <label className="block text-sm font-medium text-slate-700">
+                Paste Your Citations
+              </label>
+              <span className="text-xs text-slate-500">or upload a document below</span>
+            </div>
             <Textarea
               value={citations}
               onChange={(e) => setCitations(e.target.value)}
@@ -69,7 +150,65 @@ export default function Home() {
             />
           </div>
 
-          <div className="flex items-center justify-between">
+          {/* File Upload Area */}
+          <div className="mt-6 pt-6 border-t border-slate-200">
+            <label className="block text-sm font-medium text-slate-700 mb-3">
+              Or Upload Document
+            </label>
+            <div
+              className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                isDragging
+                  ? 'border-blue-500 bg-blue-50'
+                  : 'border-slate-300 hover:border-slate-400'
+              } ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setIsDragging(true);
+              }}
+              onDragLeave={() => setIsDragging(false)}
+              onDrop={handleFileDrop}
+            >
+              {isUploading ? (
+                <div className="flex flex-col items-center gap-2">
+                  <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+                  <p className="text-sm text-slate-600">Processing document...</p>
+                </div>
+              ) : (
+                <>
+                  <Upload className="w-12 h-12 text-slate-400 mx-auto mb-3" />
+                  <p className="text-sm font-medium text-slate-700 mb-1">
+                    Drag and drop your document here
+                  </p>
+                  <p className="text-xs text-slate-500 mb-4">
+                    Supports .docx and .pdf files
+                  </p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => document.getElementById('file-input')?.click()}
+                  >
+                    <FileText className="w-4 h-4 mr-2" />
+                    Browse Files
+                  </Button>
+                  <input
+                    id="file-input"
+                    type="file"
+                    accept=".docx,.pdf"
+                    className="hidden"
+                    onChange={handleFileSelect}
+                  />
+                </>
+              )}
+            </div>
+            {uploadError && (
+              <div className="mt-2 text-sm text-red-600">
+                {uploadError}
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-center justify-between mt-6">
             <div className="text-sm text-slate-500">
               {citations.trim() ? `${citations.split('\n').filter(l => l.trim()).length} lines pasted` : 'No citations pasted yet'}
             </div>

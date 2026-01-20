@@ -317,3 +317,18 @@
   * "Cf. (n 3)" → cross-reference (filter out) ✅
   * "See also Smith v Jones [2020] 1 AC 100" → substantive citation (keep) ✅
   * "Cf. Julian Nowag, Environmental Integration (OUP 2017)" → substantive citation (keep) ✅
+
+
+## Batch Citation Import from Word and PDF
+- [x] Design file upload architecture (S3 storage + backend processing)
+- [x] Add file upload endpoint to accept .docx and .pdf files (already exists)
+- [x] Implement .docx footnote extraction using mammoth (already exists with Word footnotes.xml support)
+- [x] Implement .pdf footnote extraction using pdf-parse (already exists)
+- [x] Preserve footnote numbering and formatting during extraction
+- [x] Add file upload UI to Home page with drag-and-drop support
+- [x] Show upload progress and extraction status
+- [x] Auto-populate textarea with extracted footnotes after processing
+- [x] Handle errors gracefully (unsupported formats, extraction failures)
+- [ ] Test with real Word documents containing various footnote styles (requires authentication)
+- [ ] Test with PDF documents containing footnotes (requires authentication)
+- [ ] Implement proper S3 upload for production use (currently using temporary URLs)
