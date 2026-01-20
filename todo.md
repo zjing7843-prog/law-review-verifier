@@ -600,3 +600,12 @@
 - [x] Citations like "See e.g. Thomas K Cheng (n 7) 192-200" also contain (n X)
 - [x] Improve cross-reference detection to catch all (n X) patterns anywhere in text
 - [x] Removed ^ anchor from regex to check entire citation text, not just start
+
+
+## Implement Autofit Column Widths for Results Tables (CRITICAL)
+- [x] Remove table-fixed layout that enforces rigid column widths
+- [x] Change to table-auto or remove layout constraint entirely
+- [x] Let Reason column expand to fit content naturally (min-w-[400px])
+- [x] Ensure Link column stays compact but doesn't get overlapped (w-24 fixed)
+- [x] Test with long reason text like "Link provided but not accessible (may be broken or require authentication)"
+- [x] Changed from percentage widths to fixed/min widths for proper auto-sizing

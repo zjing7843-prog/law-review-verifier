@@ -460,24 +460,24 @@ export default function Verify() {
                         {categoryLabels[category]}
                       </h2>
                       <div className="overflow-x-auto">
-                        <Table className="table-fixed w-full">
+                        <Table className="w-full">
                           <TableHeader>
                             <TableRow>
-                    <TableHead className="w-[5%]">No.</TableHead>
-                    <TableHead className="w-[45%]">Citation</TableHead>
-                    <TableHead className="w-[10%]">Status</TableHead>
-                    <TableHead className="w-[30%]">Reason</TableHead>
-                              <TableHead className="w-[10%]">Link</TableHead>
+                    <TableHead className="w-16">No.</TableHead>
+                    <TableHead className="min-w-[300px]">Citation</TableHead>
+                    <TableHead className="w-32">Status</TableHead>
+                    <TableHead className="min-w-[400px]">Reason</TableHead>
+                              <TableHead className="w-24">Link</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
                             {results.map((result) => (
                               <TableRow key={result.id}>
-                                <TableCell className="font-medium w-[5%]">{result.number}</TableCell>
-                                <TableCell className="break-words whitespace-normal text-sm w-[45%] max-w-0" style={{wordBreak: 'break-word', overflowWrap: 'break-word'}}>
+                                <TableCell className="font-medium">{result.number}</TableCell>
+                                <TableCell className="break-words whitespace-normal text-sm" style={{wordBreak: 'break-word', overflowWrap: 'break-word'}}>
                                   {result.fullText}
                                 </TableCell>
-                                <TableCell className="w-[10%]">
+                                <TableCell>
                                   {result.status === "verified" && (
                                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
                                       ✓ Verified
@@ -494,7 +494,7 @@ export default function Verify() {
                                     </span>
                                   )}
                                 </TableCell>
-                                <TableCell className="text-sm text-slate-600 w-[30%] align-top" style={{wordBreak: 'break-word', overflowWrap: 'break-word', maxWidth: '30%', paddingRight: '1rem'}}>
+                                <TableCell className="text-sm text-slate-600 align-top" style={{wordBreak: 'break-word', overflowWrap: 'break-word', paddingRight: '1rem'}}>
                                   <div className="space-y-1 pr-2">
                                     <div className="break-words">{result.reason}</div>
                                     {result.authority && result.confidence > 0 && (
@@ -507,7 +507,7 @@ export default function Verify() {
                                     )}
                                   </div>
                                 </TableCell>
-                                <TableCell className="w-[10%] align-top" style={{minWidth: '80px', paddingLeft: '0.5rem'}}>
+                                <TableCell className="align-top" style={{minWidth: '80px', paddingLeft: '0.5rem'}}>
                                   {result.link && (
                                     <a
                                       href={result.link}
@@ -590,24 +590,24 @@ export default function Verify() {
                     {categoryLabels[category]}
                   </h2>
                   <div className="overflow-x-auto">
-                    <Table className="table-fixed w-full">
+                    <Table className="w-full">
                       <TableHeader>
                         <TableRow>
-                          <TableHead className="w-[5%]">No.</TableHead>
-                          <TableHead className="w-[45%]">Citation</TableHead>
-                          <TableHead className="w-[10%]">Status</TableHead>
-                          <TableHead className="w-[30%]">Reason</TableHead>
-                          <TableHead className="w-[10%]">Link</TableHead>
+                          <TableHead className="w-16">No.</TableHead>
+                          <TableHead className="min-w-[300px]">Citation</TableHead>
+                          <TableHead className="w-32">Status</TableHead>
+                          <TableHead className="min-w-[400px]">Reason</TableHead>
+                          <TableHead className="w-24">Link</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {results.map((result) => (
                           <TableRow key={result.id}>
-                            <TableCell className="font-medium w-[5%]">{result.number}</TableCell>
-                            <TableCell className="break-words whitespace-normal text-sm w-[45%] max-w-0" style={{wordBreak: 'break-word', overflowWrap: 'break-word'}}>
+                            <TableCell className="font-medium">{result.number}</TableCell>
+                            <TableCell className="break-words whitespace-normal text-sm" style={{wordBreak: 'break-word', overflowWrap: 'break-word'}}>
                               {result.fullText}
                             </TableCell>
-                            <TableCell className="w-[10%]">
+                            <TableCell>
                               {result.status === "verified" && (
                                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
                                   ✓ Verified
@@ -624,7 +624,7 @@ export default function Verify() {
                                 </span>
                               )}
                             </TableCell>
-                            <TableCell className="text-sm text-slate-600 w-[30%] align-top" style={{wordBreak: 'break-word', overflowWrap: 'break-word', maxWidth: '30%', paddingRight: '1rem'}}>
+                            <TableCell className="text-sm text-slate-600 align-top" style={{wordBreak: 'break-word', overflowWrap: 'break-word', paddingRight: '1rem'}}>
                               <div className="space-y-1 pr-2">
                                 <div className="break-words">{result.reason}</div>
                                 {result.authority && result.confidence > 0 && (
@@ -637,7 +637,7 @@ export default function Verify() {
                                 )}
                               </div>
                             </TableCell>
-                            <TableCell className="w-[10%] align-top" style={{minWidth: '80px', paddingLeft: '0.5rem'}}>
+                            <TableCell className="align-top" style={{minWidth: '80px', paddingLeft: '0.5rem'}}>
                               {result.link && (
                                 <a
                                   href={result.link}
