@@ -125,10 +125,10 @@ export default function Home() {
             <div className="w-8 h-8 bg-slate-600 rounded-lg flex items-center justify-center">
               <CheckCircle2 className="w-5 h-5 text-white" />
             </div>
-            <span className="font-semibold text-slate-800">Law Review Verifier</span>
+            <span className="font-semibold text-slate-800">Citation Verification Tool</span>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-600">Citation Verification Tool</span>
+            <span className="text-sm text-gray-600">Law Review Verifier</span>
             <Button variant="ghost" size="sm" onClick={() => setLocation("/settings")}>
               <Settings className="w-4 h-4 mr-2" />
               Settings
@@ -141,7 +141,7 @@ export default function Home() {
       <div className="container max-w-4xl mx-auto px-4 py-16">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-slate-900 mb-4">
-            Verify Your Footnotes
+            Law Review Verifier
           </h1>
         </div>
 

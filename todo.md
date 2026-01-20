@@ -488,3 +488,8 @@
 - [x] Lighten hover effect for Settings button to improve text visibility
 - [x] Lighten hover effect for Browse Files button to improve text visibility
 - [x] Test hover states to ensure text remains clearly readable
+
+
+## Swap Heading Text
+- [x] Change main heading from "Verify Your Footnotes" to "Law Review Verifier"
+- [x] Change navigation text from "Law Review Verifier" to "Citation Verification Tool"
