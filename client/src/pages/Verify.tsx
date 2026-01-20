@@ -54,8 +54,8 @@ export default function Verify() {
       return { isRepeat: true, referencesFootnote: citation.number - 1 };
     }
     
-    // Check for (n X) pattern
-    const nPattern = /^\(n\s*(\d+)\)/i;
+    // Check for (n X) pattern ANYWHERE in the text (not just at start)
+    const nPattern = /\(n\s*(\d+)\)/i;
     const nMatch = text.match(nPattern);
     if (nMatch) {
       return { isRepeat: true, referencesFootnote: parseInt(nMatch[1]) };
@@ -494,8 +494,8 @@ export default function Verify() {
                                     </span>
                                   )}
                                 </TableCell>
-                                <TableCell className="text-sm text-slate-600 w-[30%]" style={{wordBreak: 'break-word', overflowWrap: 'break-word', maxWidth: '30%'}}>
-                                  <div className="space-y-1">
+                                <TableCell className="text-sm text-slate-600 w-[30%] align-top" style={{wordBreak: 'break-word', overflowWrap: 'break-word', maxWidth: '30%', paddingRight: '1rem'}}>
+                                  <div className="space-y-1 pr-2">
                                     <div className="break-words">{result.reason}</div>
                                     {result.authority && result.confidence > 0 && (
                                       <div className="flex items-center gap-2 flex-wrap">
@@ -507,7 +507,7 @@ export default function Verify() {
                                     )}
                                   </div>
                                 </TableCell>
-                                <TableCell className="w-[10%]">
+                                <TableCell className="w-[10%] align-top" style={{minWidth: '80px', paddingLeft: '0.5rem'}}>
                                   {result.link && (
                                     <a
                                       href={result.link}
@@ -624,8 +624,8 @@ export default function Verify() {
                                 </span>
                               )}
                             </TableCell>
-                            <TableCell className="text-sm text-slate-600 w-[30%]" style={{wordBreak: 'break-word', overflowWrap: 'break-word', maxWidth: '30%'}}>
-                              <div className="space-y-1">
+                            <TableCell className="text-sm text-slate-600 w-[30%] align-top" style={{wordBreak: 'break-word', overflowWrap: 'break-word', maxWidth: '30%', paddingRight: '1rem'}}>
+                              <div className="space-y-1 pr-2">
                                 <div className="break-words">{result.reason}</div>
                                 {result.authority && result.confidence > 0 && (
                                   <div className="flex items-center gap-2 flex-wrap">
@@ -637,7 +637,7 @@ export default function Verify() {
                                 )}
                               </div>
                             </TableCell>
-                            <TableCell className="w-[10%]">
+                            <TableCell className="w-[10%] align-top" style={{minWidth: '80px', paddingLeft: '0.5rem'}}>
                               {result.link && (
                                 <a
                                   href={result.link}

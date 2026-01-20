@@ -585,3 +585,18 @@
 - [x] Ensure proper cell boundaries and text containment
 - [x] Test with long verification reasons to confirm no overlap
 - [x] Apply fix to Cases, Books, Statutes, Policy Papers tables
+
+
+## Fix Persistent Text Overlapping (CRITICAL)
+- [x] Text still overlapping in Reason column, especially for hallucinated/unsure statuses
+- [x] Try different CSS approach: vertical-align, padding adjustments, or separate divs
+- [x] Ensure View link stays in its own column without text intrusion
+- [x] Added align-top, paddingRight to Reason, minWidth to Link column
+- [x] Added extra padding layers (pr-2, paddingLeft) for clear separation
+
+## Filter Cross-References from Verification (CRITICAL)
+- [x] Citations like "UN (n 6)" are appearing in results but should be filtered
+- [x] Citations like "Thomas K. Cheng (n 7) 276-280" contain (n X) pattern
+- [x] Citations like "See e.g. Thomas K Cheng (n 7) 192-200" also contain (n X)
+- [x] Improve cross-reference detection to catch all (n X) patterns anywhere in text
+- [x] Removed ^ anchor from regex to check entire citation text, not just start
