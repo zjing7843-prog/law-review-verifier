@@ -143,9 +143,6 @@ export default function Home() {
           <h1 className="text-4xl font-bold text-slate-900 mb-4">
             Verify Your Footnotes
           </h1>
-          <p className="text-lg text-gray-600">
-            Paste all footnotes below for a preliminary verification
-          </p>
         </div>
 
         {/* Paste Area */}
@@ -160,7 +157,7 @@ export default function Home() {
             <Textarea
               value={citations}
               onChange={(e) => setCitations(e.target.value)}
-              placeholder="Thomas K. Cheng and Julian Nowag, Algorithmic Predation and Exclusion, 25 University of Pennsylvania Journal of Business Law 41 (2023).&#10;Sherman Antitrust Act 1890, 15 U.S.C. § 2 https://www.law.cornell.edu/uscode/text/15/2 accessed [20 Jan 2025]."
+              placeholder="Paste all footnotes below for a preliminary verification"
               className="min-h-[200px] font-mono text-sm"
             />
           </div>

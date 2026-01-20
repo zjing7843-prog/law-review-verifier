@@ -440,3 +440,9 @@
 - [x] Detect non-existent references (e.g., OJ C259/990 when only C259/1 exists)
 - [x] Update frontend to display confidence percentages for all verification statuses
 - [x] Test with example: European Commission OJ C259/1 vs C259/990 (C259/1 verified, C259/990 marked as hallucinated with 100% confidence)
+
+
+## Update Home Page UI Text
+- [x] Remove subtitle "Paste all footnotes below for a preliminary verification"
+- [x] Update textarea placeholder to use that text instead
+- [x] Delete original example placeholder text
