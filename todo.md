@@ -645,3 +645,30 @@
 - [x] Should detect when core document exists but specific citation is fabricated
 - [x] Added explicit instruction: "Title/source matches BUT citation number/page is wrong"
 - [x] Added emphasis: "When core document exists but specific citation identifier is fabricated, this is HALLUCINATION"
+
+
+## Fix Table Column Widths and Text Wrapping (CRITICAL)
+- [x] Change column widths from 5%, 45%, 10%, 30%, 10% to 5%, 45%, 15%, 25%, 10%
+- [x] Status column wider (10% → 15%) to accommodate badges
+- [x] Reason column narrower (30% → 25%) to prevent overflow
+- [x] Ensure text wraps properly in Reason column like Citation column does
+- [x] Text already wraps with wordBreak: 'break-word', overflowWrap: 'break-word'
+
+## Remove Confidence Scores from Display (CRITICAL)
+- [x] Remove "(98% confidence)", "(100% confidence)", etc. from Reason column
+- [x] Keep only authority badge (Official/Authoritative/General) without confidence percentage
+- [x] Confidence is still calculated internally but not shown to user
+- [x] Removed confidence display from both verifying and results sections
+
+## Shorten Reason Text Further (CRITICAL)
+- [x] Remove "Citation appears fabricated:" prefix from hallucination reasons
+- [x] Just state the core issue directly from fieldMismatches array
+- [x] Changed "Link returned X status" → "HTTP X"
+- [x] Changed "Link not accessible" → "Link inaccessible"
+- [x] Changed "Service temporarily unavailable" → "Service unavailable"
+- [x] Changed "Could not verify (possible mismatches: ...)" → just the mismatches
+- [x] Changed "Found on official judgment system" → "Official judgment"
+- [x] Changed "Found on official legislation database" → "Official legislation"
+- [x] Changed "Found on official government source" → "Official source"
+- [x] Changed "Found on authoritative academic source" → "Authoritative source"
+- [x] Changed "Found via web search" → "Found via search"

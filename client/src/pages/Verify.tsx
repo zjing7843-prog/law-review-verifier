@@ -462,13 +462,13 @@ export default function Verify() {
                       <div className="overflow-x-auto">
                         <Table className="table-fixed w-full">
                           <TableHeader>
-                            <TableRow>
-                    <TableHead className="w-[5%]">No.</TableHead>
-                    <TableHead className="w-[45%]">Citation</TableHead>
-                    <TableHead className="w-[10%]">Status</TableHead>
-                    <TableHead className="w-[30%]">Reason</TableHead>
-                              <TableHead className="w-[10%]">Link</TableHead>
-                            </TableRow>
+            <TableRow>
+              <TableHead className="w-[5%]">No.</TableHead>
+              <TableHead className="w-[45%]">Citation</TableHead>
+              <TableHead className="w-[15%]">Status</TableHead>
+              <TableHead className="w-[25%]">Reason</TableHead>
+              <TableHead className="w-[10%]">Link</TableHead>
+            </TableRow>
                           </TableHeader>
                           <TableBody>
                             {results.map((result) => (
@@ -497,12 +497,9 @@ export default function Verify() {
                                 <TableCell className="text-sm text-slate-600 align-top" style={{wordBreak: 'break-word', overflowWrap: 'break-word', paddingRight: '1rem'}}>
                                   <div className="space-y-1 pr-2">
                                     <div className="break-words">{result.reason}</div>
-                                    {result.authority && result.confidence > 0 && (
+                                    {result.authority && (
                                       <div className="flex items-center gap-2 flex-wrap">
                                         {getAuthorityBadge(result.authority)}
-                                        <span className="text-xs text-gray-500">
-                                          ({result.confidence}% confidence)
-                                        </span>
                                       </div>
                                     )}
                                   </div>
@@ -612,12 +609,9 @@ export default function Verify() {
                             <TableCell className="text-sm text-slate-600 align-top" style={{wordBreak: 'break-word', overflowWrap: 'break-word', paddingRight: '1rem'}}>
                               <div className="space-y-1 pr-2">
                                 <div className="break-words">{result.reason}</div>
-                                {result.authority && result.confidence > 0 && (
+                                {result.authority && (
                                   <div className="flex items-center gap-2 flex-wrap">
                                     {getAuthorityBadge(result.authority)}
-                                    <span className="text-xs text-gray-500">
-                                      ({result.confidence}% confidence)
-                                    </span>
                                   </div>
                                 )}
                               </div>

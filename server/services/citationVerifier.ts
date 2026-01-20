@@ -285,9 +285,9 @@ export async function verifyCitation(
         return {
           status: "verified",
           reason: authority === "official" 
-            ? "Official source accessible"
+            ? "Official source"
             : authority === "authoritative"
-            ? "Authoritative source accessible"
+            ? "Authoritative source"
             : "Source accessible",
           link: embeddedUrl,
           authority,
@@ -296,7 +296,7 @@ export async function verifyCitation(
       } else {
         return {
           status: "unsure",
-          reason: `Link returned ${response.status} status`,
+          reason: `HTTP ${response.status}`,
           link: embeddedUrl,
           authority: "general",
           confidence: 0
@@ -306,7 +306,7 @@ export async function verifyCitation(
       console.error(`[citationVerifier] URL check failed for ${embeddedUrl}:`, error);
       return {
         status: "unsure",
-        reason: "Link not accessible",
+        reason: "Link inaccessible",
         link: embeddedUrl,
         authority: "general",
         confidence: 0
@@ -339,7 +339,7 @@ export async function verifyCitation(
     console.error('[citationVerifier] All retry attempts failed:', lastError);
     return {
       status: "unsure",
-      reason: "Service temporarily unavailable",
+      reason: "Service unavailable",
       link: `https://www.google.com/search?q=${encodeURIComponent(citationText)}`,
       authority: "general",
       confidence: 0
@@ -349,12 +349,12 @@ export async function verifyCitation(
   // Step 3: Handle hallucinated citations (confidence > 90%)
   if (searchResult.isHallucinated) {
     const mismatchDetails = searchResult.fieldMismatches && searchResult.fieldMismatches.length > 0
-      ? `: ${searchResult.fieldMismatches.join(", ")}`
-      : "";
+      ? searchResult.fieldMismatches.join(", ")
+      : "Fabricated";
     
     return {
       status: "hallucinated",
-      reason: `Citation appears fabricated${mismatchDetails}`,
+      reason: mismatchDetails,
       link: `https://www.google.com/search?q=${encodeURIComponent(citationText)}`,
       authority: "general",
       confidence: searchResult.confidence
@@ -364,12 +364,12 @@ export async function verifyCitation(
   // Step 4: Handle citations not found or with low confidence
   if (!searchResult.found || searchResult.confidence < 70) {
     const mismatchNote = searchResult.fieldMismatches && searchResult.fieldMismatches.length > 0
-      ? ` (possible mismatches: ${searchResult.fieldMismatches.join(", ")})`
-      : "";
+      ? searchResult.fieldMismatches.join(", ")
+      : "Not verified";
     
     return {
       status: "unsure",
-      reason: `Could not verify${mismatchNote}`,
+      reason: mismatchNote,
       link: `https://www.google.com/search?q=${encodeURIComponent(citationText)}`,
       authority: "general",
       confidence: searchResult.confidence
@@ -383,14 +383,14 @@ export async function verifyCitation(
   let reason: string;
   if (authority === "official") {
     reason = category === "case" 
-      ? "Found on official judgment system"
+      ? "Official judgment"
       : category === "statute"
-      ? "Found on official legislation database"
-      : "Found on official government source";
+      ? "Official legislation"
+      : "Official source";
   } else if (authority === "authoritative") {
-    reason = "Found on authoritative academic source";
+    reason = "Authoritative source";
   } else {
-    reason = "Found via web search";
+    reason = "Found via search";
   }
 
   return {
