@@ -128,7 +128,6 @@ export default function Home() {
             <span className="font-semibold text-slate-800">Citation Verification Tool</span>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-600">Law Review Verifier</span>
             <Button variant="ghost" size="sm" onClick={() => setLocation("/settings")}>
               <Settings className="w-4 h-4 mr-2" />
               Settings

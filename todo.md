@@ -493,3 +493,7 @@
 ## Swap Heading Text
 - [x] Change main heading from "Verify Your Footnotes" to "Law Review Verifier"
 - [x] Change navigation text from "Law Review Verifier" to "Citation Verification Tool"
+
+
+## Remove Navigation Text
+- [x] Remove "Law Review Verifier" text from navigation bar
