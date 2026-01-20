@@ -83,6 +83,32 @@ export default function Verify() {
       return { isRepeat: true, referencesFootnote: crossRefMatch[1] };
     }
     
+    // Check for "see also" followed by footnote reference (case-insensitive)
+    // Matches: "See also n 5", "see also (n 3)", "See also note 10"
+    // Does NOT match: "See also Smith v Jones" (substantive citation with signal)
+    const seeAlsoMatch = text.match(/\bsee\s+also\s+(?:note\s+)?(\d+|\([nN]\s*\d+\)|[nN]\s*\d+)/i);
+    if (seeAlsoMatch) {
+      // Extract footnote number from various formats
+      const footnoteNum = seeAlsoMatch[1].match(/\d+/);
+      if (footnoteNum) {
+        return { isRepeat: true, referencesFootnote: footnoteNum[0] };
+      }
+      return { isRepeat: true };
+    }
+    
+    // Check for "cf." followed by footnote reference (case-insensitive)
+    // Matches: "Cf. n 5", "cf. (n 3)", "Cf. note 10"
+    // Does NOT match: "Cf. Smith v Jones" (substantive citation with signal)
+    const cfMatch = text.match(/\bcf\.?\s+(?:note\s+)?(\d+|\([nN]\s*\d+\)|[nN]\s*\d+)/i);
+    if (cfMatch) {
+      // Extract footnote number from various formats
+      const footnoteNum = cfMatch[1].match(/\d+/);
+      if (footnoteNum) {
+        return { isRepeat: true, referencesFootnote: footnoteNum[0] };
+      }
+      return { isRepeat: true };
+    }
+    
     return { isRepeat: false };
   };
 

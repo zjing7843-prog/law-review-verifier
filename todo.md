@@ -305,3 +305,15 @@
 - [x] Keep existing "ibid" and "(n X)" detection
 - [x] Test with real legal citations containing all cross-reference markers (9 citations → 3 unique, 6 filtered)
 - [x] Ensure these citations are filtered out from verification (no web search needed)
+
+
+## Add Comparative Cross-Reference Detection
+- [x] Detect "see also" followed by footnote reference (e.g., "See also n 5", "see also (n 3)")
+- [x] Detect "cf." followed by footnote reference (e.g., "Cf. n 5", "cf. (n 3)")
+- [x] Preserve substantive citations with signal words (e.g., "See also Smith v Jones [2020]" should NOT be filtered)
+- [x] Add logic to distinguish between pure cross-references and substantive citations with signals
+- [x] Test with examples:
+  * "See also n 5" → cross-reference (filter out) ✅
+  * "Cf. (n 3)" → cross-reference (filter out) ✅
+  * "See also Smith v Jones [2020] 1 AC 100" → substantive citation (keep) ✅
+  * "Cf. Julian Nowag, Environmental Integration (OUP 2017)" → substantive citation (keep) ✅
