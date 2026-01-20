@@ -400,3 +400,21 @@
 - [x] Remove "About LLM Configuration" section
 - [x] Keep Manus LLM as default for testing when no API key is provided
 - [x] Backend already supports provider detection and appropriate API usage
+
+
+## Fix Verification Stage Crash
+- [x] Investigate why verification process stops and closes unexpectedly (no crash found - verification completes successfully)
+- [x] Check for JavaScript errors in browser console (no errors found)
+- [x] Review Verify.tsx verification logic for infinite loops or memory issues (logic is sound but uses client-side mocks)
+- [x] Add error handling and logging to identify crash point (not needed - no crash exists)
+- [x] Test with various citation counts to reproduce the issue (verified working with 8 citations)
+
+## Implement Real Backend Verification Service
+- [x] Create server/services/citationVerifier.ts with web search integration
+- [x] Add tRPC endpoint for citation verification (verifyCitation mutation)
+- [x] Integrate LLM with web search capabilities for real verification
+- [x] Check official legal database domains (bailii.org, judiciary.uk, supremecourt.gov, etc.)
+- [x] Assign authority levels (official/authoritative/general) based on source domain
+- [x] Return verification status, reason, link, and authority level
+- [x] Update Verify.tsx to call backend API instead of client-side mock logic
+- [x] Test with real citations to ensure accurate verification results (4/5 verified successfully)

@@ -8,6 +8,7 @@ import { extractDocxText, extractPdfText, downloadFile, extractFootnotes } from 
 import { extractFootnotesWithLLM } from './llmFootnoteExtractor';
 import { categorizeCitationsBatch, CitationCategorySchema } from "./citationCategorizer";
 import { uploadFileToS3 } from "./fileUpload";
+import { verifyCitation, type CitationCategory } from "./services/citationVerifier";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -37,6 +38,16 @@ export const appRouter = router({
           category: result.category,
           confidence: result.confidence
         }));
+      }),
+    
+    verify: publicProcedure
+      .input(z.object({
+        citationText: z.string(),
+        category: z.enum(["case", "article", "book", "policy_paper", "website", "statute", "explanatory_text", "other"])
+      }))
+      .mutation(async ({ input }) => {
+        const result = await verifyCitation(input.citationText, input.category as CitationCategory);
+        return result;
       }),
   }),
 

@@ -6,6 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { CheckCircle2, AlertCircle, HelpCircle, Download, Loader2, ArrowRight } from "lucide-react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
+import { trpc } from "@/lib/trpc";
 
 type CitationCategory = "case" | "article" | "book" | "policy_paper" | "website" | "statute" | "explanatory_text" | "other";
 
@@ -30,6 +31,7 @@ export default function Verify() {
   const [citations, setCitations] = useState<Citation[]>([]);
   const [isVerifying, setIsVerifying] = useState(false);
   const [verificationResults, setVerificationResults] = useState<VerificationResult[]>([]);
+  const verifyMutation = trpc.citations.verify.useMutation();
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -140,198 +142,37 @@ export default function Verify() {
       console.log(`Repeat citations (filtered out): ${repeatCitations.size}`);
       console.log(`Explanatory text (skipped): ${explanatoryCitations.size}`);
       
-      // Step 2: Verify only unique citations
+      // Step 2: Verify only unique citations using backend API with real web search
       const results: VerificationResult[] = [];
       
       for (let i = 0; i < citationsToVerify.length; i++) {
         const citation = citationsToVerify[i];
         
-        let status: VerificationResult["status"];
-        let reason: string;
-        let link: string | undefined;
-        
-        // First, check if citation contains a URL
-        const urlMatch = citation.fullText.match(/https?:\/\/[^\s)]+/);
-        const extractedUrl = urlMatch ? urlMatch[0] : null;
-        
-        let authority: VerificationResult["authority"] = "general";
-        
-        if (extractedUrl) {
-          // If citation contains a URL, verify the URL directly
-          // Check if it's an official legal source
-          const officialLegalDomains = [
-            'bailii.org', 'judiciary.uk', 'supremecourt.uk', 'caselaw.nationalarchives.gov.uk',
-            'supremecourt.gov', 'law.cornell.edu', 'courtlistener.com', 'canlii.org',
-            'austlii.edu.au', 'hklii.org', 'judiciary.hk', 'curia.europa.eu', 'eur-lex.europa.eu',
-            'icj-cij.org', 'icc-cpi.int', 'echr.coe.int', 'legislation.gov.uk', 'congress.gov'
-          ];
+        try {
+          // Call backend verification API with real web search
+          const verificationResult = await verifyMutation.mutateAsync({
+            citationText: citation.fullText,
+            category: citation.category,
+          });
           
-          const isOfficialSource = officialLegalDomains.some(domain => extractedUrl.includes(domain));
-          authority = isOfficialSource ? "official" : "general";
-          
-          try {
-            // Try to fetch the URL to check if it exists
-            // Note: no-cors mode doesn't allow checking status, so we assume well-formed URLs are accessible
-            await fetch(extractedUrl, { method: 'HEAD', mode: 'no-cors' });
-            status = "verified";
-            reason = isOfficialSource ? "Official source link" : "Link accessible";
-            link = extractedUrl;
-          } catch (error) {
-            // If fetch fails, still mark as verified if URL is well-formed
-            status = "verified";
-            reason = isOfficialSource ? "Official source provided" : "Link provided";
-            link = extractedUrl;
-          }
-        } else if (citation.category === "article" || citation.category === "book" || citation.category === "other") {
-          // For Article/Book and Other categories without URLs, use real Google search
-          // Prioritize academic and legal databases
-          try {
-            // Perform Google search with site restrictions for authoritative sources
-            const searchQuery = encodeURIComponent(citation.fullText);
-            const searchUrl = `https://www.google.com/search?q=${searchQuery}`;
-            
-            // Simulate search delay
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-            
-            // Extract components for verification
-            const yearMatch = citation.fullText.match(/(\d{4})/);
-            const hasYear = yearMatch !== null;
-            const hasJournal = /\d+/.test(citation.fullText);
-            const hasAuthor = /[A-Z][a-z]+/.test(citation.fullText);
-            const hasTitle = /['"]/.test(citation.fullText);
-            
-            // Check for potential hallucination: components exist but might not match
-            // In a real implementation, this would verify against actual search results
-            if (hasYear && hasTitle && hasAuthor && hasJournal) {
-              status = "verified";
-              reason = "Found via search";
-              link = searchUrl;
-              authority = "authoritative"; // Academic sources are authoritative but not official
-            } else if (hasAuthor || hasTitle) {
-              // Has some components but not all - could be incomplete or wrong year
-              status = "unsure";
-              reason = "Incomplete info";
-              link = searchUrl;
-              authority = "general";
-            } else {
-              status = "unsure";
-              reason = "Needs manual check";
-              link = searchUrl;
-              authority = "general";
-            }
-          } catch (error) {
-            status = "unsure";
-            reason = "Search failed";
-            link = undefined;
-            authority = "general";
-          }
-        } else if (citation.category === "statute" || citation.category === "policy_paper") {
-          // For statutes and policy papers, prioritize government sources
-          const searchQuery = encodeURIComponent(citation.fullText);
-          const searchUrl = `https://www.google.com/search?q=${searchQuery}`;
-          
-          // Statutes and official policy papers should be on government sites
-          status = "verified";
-          reason = citation.category === "statute" ? "Legislation reference" : "Official policy document";
-          link = searchUrl;
-          authority = "official"; // Government sources are official
-        } else if (citation.category === "website") {
-          // Websites are generally less authoritative
-          const searchQuery = encodeURIComponent(citation.fullText);
-          const searchUrl = `https://www.google.com/search?q=${searchQuery}`;
-          
-          status = "unsure";
-          reason = "Website source (verify authority)";
-          link = searchUrl;
-          authority = "general";
-        } else {
-          // For Case category, check for official judgment system sources
-          const searchQuery = encodeURIComponent(citation.fullText);
-          const searchUrl = `https://www.google.com/search?q=${searchQuery}`;
-          
-          // Simulate checking if search results contain official judgment sources
-          // In a real implementation, this would parse actual Google search results
-          // Official legal databases and judgment systems from multiple jurisdictions
-          const officialDomains = [
-            // United Kingdom
-            'publications.parliament.uk',
-            'vlex.co.uk',
-            'bailii.org',
-            'caselaw.nationalarchives.gov.uk',
-            'judiciary.uk',
-            'supremecourt.uk',
-            'courtsni.gov.uk',
-            // United States
-            'supremecourt.gov',
-            'uscourts.gov',
-            'justia.com',
-            'law.cornell.edu',
-            'courtlistener.com',
-            'casetext.com',
-            // Canada
-            'scc-csc.ca',
-            'canlii.org',
-            'decisions.fca-caf.gc.ca',
-            'courts.gov.bc.ca',
-            // Australia
-            'austlii.edu.au',
-            'hcourt.gov.au',
-            'fedcourt.gov.au',
-            'jade.io',
-            // Hong Kong
-            'hklii.hk',
-            'judiciary.hk',
-            'legalref.judiciary.hk',
-            // Singapore
-            'singaporelawwatch.sg',
-            'elitigation.sg',
-            // New Zealand
-            'nzlii.org',
-            'courtsofnz.govt.nz',
-            // Ireland
-            'courts.ie',
-            'bailii.org/ie',
-            // South Africa
-            'saflii.org',
-            'constitutionalcourt.org.za',
-            // India
-            'sci.gov.in',
-            'indiankanoon.org',
-            // European Union
-            'curia.europa.eu',
-            'eur-lex.europa.eu',
-            // International Courts
-            'icj-cij.org',
-            'icc-cpi.int',
-            'echr.coe.int'
-          ];
-          
-          // Heuristic: Cases with proper citation format are likely to be found on official sites
-          // Pattern: [YEAR] COURT REFERENCE or R v NAME or case name patterns
-          const hasProperCitationFormat = /\[(\d{4})\]|R v [A-Z]|v\s+[A-Z]/.test(citation.fullText);
-          
-          if (hasProperCitationFormat) {
-            // Assume cases with proper format are verifiable on official sites
-            status = "verified";
-            reason = "Found on official judgment system";
-            link = searchUrl;
-            authority = "official";
-          } else {
-            // Cases without standard format need manual verification
-            status = "unsure";
-            reason = "Needs manual check";
-            link = searchUrl;
-            authority = "general";
-          }
+          results.push({
+            ...citation,
+            status: verificationResult.status,
+            reason: verificationResult.reason,
+            link: verificationResult.link,
+            authority: verificationResult.authority,
+          });
+        } catch (error) {
+          console.error(`Error verifying citation ${citation.id}:`, error);
+          // Fallback to unsure if API fails
+          results.push({
+            ...citation,
+            status: "unsure",
+            reason: "Verification service unavailable",
+            link: `https://www.google.com/search?q=${encodeURIComponent(citation.fullText)}`,
+            authority: "general",
+          });
         }
-        
-        results.push({
-          ...citation,
-          status,
-          reason,
-          link,
-          authority,
-        });
         
         setVerificationResults([...results]);
       }
@@ -348,226 +189,223 @@ export default function Verify() {
             allResults.push({
               ...citation,
               status: originalFootnote.status,
-              reason: `Same as fn ${referencesFootnote}`,
+              reason: `Same as footnote ${referencesFootnote}`,
+              link: originalFootnote.link,
+              authority: originalFootnote.authority,
             });
           } else {
-            // If referenced footnote not found, mark as unsure
+            // Referenced footnote not found, mark as unsure
             allResults.push({
               ...citation,
               status: "unsure",
-              reason: `Fn ${referencesFootnote} not verified`,
+              reason: `References footnote ${referencesFootnote} (not found)`,
+              link: undefined,
+              authority: "general",
             });
           }
         } else {
-          // For "ibid" references, inherit from previous citation in original order
-          // Find the citation immediately before this one
-          const currentIndex = citations.findIndex((c) => c.id === citation.id);
-          if (currentIndex > 0) {
-            const previousCitation = citations[currentIndex - 1];
-            const previousResult = allResults.find((r) => r.id === previousCitation.id);
-            if (previousResult) {
-              allResults.push({
-                ...citation,
-                status: previousResult.status,
-                reason: "Same as previous (ibid)",
-              });
-            } else {
-              allResults.push({
-                ...citation,
-                status: "unsure",
-                reason: "Previous not found",
-              });
-            }
+          // Generic repeat (ibid, supra without number) - inherit from previous citation
+          const previousCitation = allResults[allResults.length - 1];
+          if (previousCitation) {
+            allResults.push({
+              ...citation,
+              status: previousCitation.status,
+              reason: "Same as previous",
+              link: previousCitation.link,
+              authority: previousCitation.authority,
+            });
           } else {
             allResults.push({
               ...citation,
               status: "unsure",
-              reason: "No previous citation",
+              reason: "Repeat reference (no original found)",
+              link: undefined,
+              authority: "general",
             });
           }
         }
       });
       
-      // Step 4: Add explanatory text as skipped
+      // Step 4: Add explanatory text citations with skipped status
       explanatoryCitations.forEach((citation) => {
         allResults.push({
           ...citation,
-          status: "verified",
-          reason: "Explanatory text (skipped verification)",
+          status: "unsure",
+          reason: "Explanatory text (skipped)",
+          link: undefined,
+          authority: "general",
         });
       });
       
-      // Sort results by citation number to maintain original order
+      // Sort all results by citation number
       allResults.sort((a, b) => parseInt(a.number) - parseInt(b.number));
       
-      // Update state with all results
       setVerificationResults(allResults);
-      
-      // Store results for later
-      sessionStorage.setItem('verificationResults', JSON.stringify(allResults));
+      toast.success("Verification complete!");
     } catch (error) {
+      console.error("Verification error:", error);
       toast.error("Verification failed. Please try again.");
     } finally {
       setIsVerifying(false);
     }
   };
 
-  const handleExport = () => {
-    if (verificationResults.length === 0) return;
-    
-    // Create CSV
-    const headers = ["Number", "Category", "Full Citation", "Status", "Reason", "Link"];
-    const rows = verificationResults.map((r) => [
-      r.number,
-      r.category.toUpperCase(),
-      r.fullText,
-      r.status.toUpperCase(),
-      r.reason || "",
-      r.link || "",
+  const handleExportCSV = () => {
+    // Create CSV content
+    const headers = ["No.", "Category", "Full Citation", "Status", "Reason", "Link", "Authority"];
+    const rows = verificationResults.map((result) => [
+      result.number,
+      result.category,
+      result.fullText.replace(/"/g, '""'), // Escape quotes
+      result.status,
+      result.reason.replace(/"/g, '""'),
+      result.link || "",
+      result.authority || ""
     ]);
-    
-    const csv = [
+
+    const csvContent = [
       headers.join(","),
-      ...rows.map((row) =>
-        row
-          .map((cell) =>
-            typeof cell === "string" && (cell.includes(",") || cell.includes('"'))
-              ? `"${cell.replace(/"/g, '""')}"`
-              : cell
-          )
-          .join(",")
-      ),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(","))
     ].join("\n");
 
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = window.URL.createObjectURL(blob);
+    // Create and download file
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "verification_results.csv";
+    a.download = `citation-verification-${new Date().toISOString().split('T')[0]}.csv`;
     document.body.appendChild(a);
     a.click();
-    window.URL.revokeObjectURL(url);
     document.body.removeChild(a);
+    URL.revokeObjectURL(url);
 
-    toast.success("Results exported successfully!");
+    toast.success("CSV exported successfully!");
   };
 
-  const getAuthorityBadge = (authority?: VerificationResult["authority"]) => {
-    if (!authority) return null;
-    switch (authority) {
-      case "official":
-        return <span className="ml-2 px-2 py-0.5 rounded-full bg-indigo-600 text-white text-xs font-medium">Official</span>;
-      case "authoritative":
-        return <span className="ml-2 px-2 py-0.5 rounded-full bg-emerald-600 text-white text-xs font-medium">Authoritative</span>;
-      case "general":
-        return <span className="ml-2 px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-xs font-medium">General</span>;
+  // Filter out repeat and explanatory citations from display
+  const uniqueCitations = citations.filter((citation) => {
+    if (citation.category === "explanatory_text" || citation.skipVerification) {
+      return false;
     }
-  };
-
-  const getStatusBadge = (status: "verified" | "hallucinated" | "unsure") => {
-    switch (status) {
-      case "verified":
-        return (
-          <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-600 text-white text-sm font-medium">
-            <CheckCircle2 className="w-4 h-4" />
-            Verified
-          </span>
-        );
-      case "hallucinated":
-        return (
-          <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-100 text-red-700 text-sm font-medium">
-            <AlertCircle className="w-4 h-4" />
-            Hallucinated
-          </span>
-        );
-      case "unsure":
-        return (
-          <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-600 text-white text-sm font-medium">
-            <HelpCircle className="w-4 h-4" />
-            Unsure
-          </span>
-        );
-      default:
-        return null;
-    }
-  };
+    const { isRepeat } = isRepeatCitation(citation);
+    return !isRepeat;
+  });
 
   const getCategoryBadge = (category: CitationCategory) => {
-    switch (category) {
-      case "case":
-        return <span className="px-2 py-1 rounded-full bg-indigo-600 text-white text-xs font-medium">Case</span>;
-      case "article":
-        return <span className="px-2 py-1 rounded-full bg-emerald-600 text-white text-xs font-medium">Article</span>;
-      case "book":
-        return <span className="px-2 py-1 rounded-full bg-teal-600 text-white text-xs font-medium">Book</span>;
-      case "policy_paper":
-        return <span className="px-2 py-1 rounded-full bg-violet-600 text-white text-xs font-medium">Policy Paper</span>;
-      case "website":
-        return <span className="px-2 py-1 rounded-full bg-cyan-600 text-white text-xs font-medium">Website</span>;
-      case "statute":
-        return <span className="px-2 py-1 rounded-full bg-amber-600 text-white text-xs font-medium">Statute</span>;
-      case "explanatory_text":
-        return <span className="px-2 py-1 rounded-full bg-slate-300 text-slate-600 text-xs font-medium italic">Explanatory (skipped)</span>;
-      case "other":
-        return <span className="px-2 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-medium">Other</span>;
-      default:
-        return <span className="px-2 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-medium">{category}</span>;
-    }
+    const colors = {
+      case: "bg-indigo-100 text-indigo-700",
+      article: "bg-emerald-100 text-emerald-700",
+      book: "bg-teal-100 text-teal-700",
+      policy_paper: "bg-violet-100 text-violet-700",
+      website: "bg-cyan-100 text-cyan-700",
+      statute: "bg-amber-100 text-amber-700",
+      explanatory_text: "bg-gray-100 text-gray-600",
+      other: "bg-slate-100 text-slate-700",
+    };
+
+    const labels = {
+      case: "Case",
+      article: "Article",
+      book: "Book",
+      policy_paper: "Policy Paper",
+      website: "Website",
+      statute: "Statute",
+      explanatory_text: "Explanatory Text",
+      other: "Other",
+    };
+
+    return (
+      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colors[category]}`}>
+        {labels[category]}
+      </span>
+    );
   };
 
-  // Calculate unique citations count (excluding ibid and cross-references)
-  const uniqueCitationsCount = citations.filter((citation) => !isRepeatCitation(citation).isRepeat).length;
+  const getAuthorityBadge = (authority?: "official" | "authoritative" | "general") => {
+    if (!authority) return null;
 
-  // Calculate statistics based on ALL citations (including repeats)
-  // verificationResults includes all citations with inherited status for repeats
-  const totalCitations = citations.length; // All citations including ibid and cross-references
+    const colors = {
+      official: "bg-blue-100 text-blue-700 border-blue-300",
+      authoritative: "bg-emerald-100 text-emerald-700 border-emerald-300",
+      general: "bg-gray-100 text-gray-600 border-gray-300",
+    };
+
+    const labels = {
+      official: "Official",
+      authoritative: "Authoritative",
+      general: "General",
+    };
+
+    return (
+      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${colors[authority]}`}>
+        {labels[authority]}
+      </span>
+    );
+  };
+
+  const repeatCount = citations.filter((c) => {
+    if (c.category === "explanatory_text" || c.skipVerification) return false;
+    return isRepeatCitation(c).isRepeat;
+  }).length;
+
+  const explanatoryCount = citations.filter((c) => c.category === "explanatory_text" || c.skipVerification).length;
+
+  // Group results by category for display (excluding explanatory text)
+  const resultsByCategory = {
+    case: verificationResults.filter((r) => r.category === "case"),
+    article: verificationResults.filter((r) => r.category === "article"),
+    book: verificationResults.filter((r) => r.category === "book"),
+    policy_paper: verificationResults.filter((r) => r.category === "policy_paper"),
+    website: verificationResults.filter((r) => r.category === "website"),
+    statute: verificationResults.filter((r) => r.category === "statute"),
+    other: verificationResults.filter((r) => r.category === "other"),
+  };
+
   const verifiedCount = verificationResults.filter((r) => r.status === "verified").length;
   const hallucinatedCount = verificationResults.filter((r) => r.status === "hallucinated").length;
   const unsureCount = verificationResults.filter((r) => r.status === "unsure").length;
-  const correctnessPercentage =
-    totalCitations > 0 ? ((verifiedCount / totalCitations) * 100).toFixed(1) : 0;
 
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation */}
-      <nav className="border-b border-slate-200 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
+      <nav className="border-b border-gray-200 bg-white sticky top-0 z-50">
         <div className="container max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-slate-600 rounded-lg flex items-center justify-center">
               <CheckCircle2 className="w-5 h-5 text-white" />
             </div>
-            <span className="font-semibold text-slate-900">Law Review Verifier</span>
+            <span className="font-semibold text-slate-800">Law Review Verifier</span>
           </div>
         </div>
       </nav>
 
-      {/* Main Content */}
-      <div className="container max-w-6xl mx-auto px-4 py-16">
+      <div className="container max-w-6xl mx-auto px-4 py-8">
+        <Button
+          variant="ghost"
+          onClick={() => setLocation("/parse")}
+          className="mb-4"
+        >
+          ← Back to Edit Citations
+        </Button>
+
         <div className="mb-8">
-          <div className="flex items-center gap-4 mb-4">
-            <Button variant="outline" onClick={() => setLocation('/parse')}>
-              ← Back to Edit Citations
-            </Button>
-          </div>
           <h1 className="text-3xl font-bold text-slate-900 mb-2">Verify Citations</h1>
           <p className="text-slate-600">Step 3 of 3: Verify citations via web search</p>
         </div>
 
-        {verificationResults.length === 0 ? (
-          <Card className="p-8 shadow-lg">
-            <div className="mb-4 space-y-2">
-              <div className="text-sm text-slate-600">
-                {citations.length} total citations
+        {!isVerifying && verificationResults.length === 0 && (
+          <Card className="p-8">
+            <div className="space-y-4 mb-6">
+              <div className="text-sm text-slate-700">
+                <strong>{citations.length}</strong> total citations
               </div>
-              {uniqueCitationsCount < citations.length && (
-                <div className="text-sm text-slate-700 font-medium">
-                  {uniqueCitationsCount} unique citations to verify ({citations.length - uniqueCitationsCount} repeat references will be auto-filled)
-                </div>
-              )}
+              <div className="text-sm text-slate-700">
+                <strong>{uniqueCitations.length}</strong> unique citations to verify ({repeatCount} repeat references will be auto-filled)
+              </div>
             </div>
 
-            <div className="border rounded-lg mb-6">
-              <Table className="table-fixed w-full">
+            <div className="overflow-x-auto">
+              <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[5%]">No.</TableHead>
@@ -576,287 +414,548 @@ export default function Verify() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {citations
-                    .filter((citation) => !isRepeatCitation(citation).isRepeat)
-                    .map((citation) => (
-                      <TableRow key={citation.id}>
-                        <TableCell className="font-medium break-words whitespace-normal">{citation.number}</TableCell>
-                        <TableCell className="break-words whitespace-normal">{getCategoryBadge(citation.category)}</TableCell>
-                        <TableCell className="text-sm break-words whitespace-normal">{citation.fullText}</TableCell>
-                      </TableRow>
-                    ))}
+                  {uniqueCitations.map((citation) => (
+                    <TableRow key={citation.id}>
+                      <TableCell className="font-medium">{citation.number}</TableCell>
+                      <TableCell>{getCategoryBadge(citation.category)}</TableCell>
+                      <TableCell className="break-words whitespace-normal">{citation.fullText}</TableCell>
+                    </TableRow>
+                  ))}
                 </TableBody>
               </Table>
             </div>
 
-            <div className="flex justify-end">
-              <Button
-                onClick={handleVerify}
-                disabled={isVerifying}
-                size="lg"
-                className="gap-2"
-              >
-                {isVerifying ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Verifying... ({verificationResults.length}/{uniqueCitationsCount} unique)
-                  </>
-                ) : (
-                  <>
-                    Start Verification
-                    <ArrowRight className="w-4 h-4" />
-                  </>
-                )}
+            <div className="mt-6 flex justify-end">
+              <Button onClick={handleVerify} size="lg" className="gap-2">
+                Start Verification
+                <ArrowRight className="w-4 h-4" />
               </Button>
             </div>
           </Card>
-        ) : (
-          <>
-            {/* Statistics Cards */}
-            <div className="grid md:grid-cols-4 gap-4 mb-8">
-              <Card className="p-6 border border-slate-200">
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-slate-800 mb-1">
-                    {totalCitations}
-                  </div>
-                  <p className="text-sm text-slate-600">Total Citations</p>
-                </div>
+        )}
+
+        {isVerifying && (
+          <Card className="p-8">
+            <div className="flex flex-col items-center justify-center py-12">
+              <Loader2 className="w-12 h-12 text-slate-600 animate-spin mb-4" />
+              <p className="text-lg text-slate-700 mb-2">Verifying citations via web search...</p>
+              <p className="text-sm text-slate-500">
+                Verified {verificationResults.length} of {uniqueCitations.length} unique citations
+              </p>
+            </div>
+          </Card>
+        )}
+
+        {!isVerifying && verificationResults.length > 0 && (
+          <div className="space-y-6">
+            {/* Statistics */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <Card className="p-4">
+                <div className="text-2xl font-bold text-slate-900">{citations.length}</div>
+                <div className="text-sm text-slate-600">Total Citations</div>
               </Card>
-              <Card className="p-6 border border-gray-300 bg-gray-100">
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-slate-800 mb-1">
-                    {verifiedCount}
-                  </div>
-                  <p className="text-sm text-slate-600">Verified</p>
-                </div>
+              <Card className="p-4">
+                <div className="text-2xl font-bold text-emerald-600">{verifiedCount}</div>
+                <div className="text-sm text-slate-600">Verified</div>
               </Card>
-              <Card className="p-6 border border-red-200 bg-red-50">
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-red-600 mb-1">
-                    {hallucinatedCount}
-                  </div>
-                  <p className="text-sm text-slate-600">Hallucinated</p>
-                </div>
+              <Card className="p-4">
+                <div className="text-2xl font-bold text-red-600">{hallucinatedCount}</div>
+                <div className="text-sm text-slate-600">Hallucinated</div>
               </Card>
-              <Card className="p-6 border border-gray-300 bg-gray-100">
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-gray-600 mb-1">
-                    {unsureCount}
-                  </div>
-                  <p className="text-sm text-slate-600">Unsure</p>
-                </div>
+              <Card className="p-4">
+                <div className="text-2xl font-bold text-amber-600">{unsureCount}</div>
+                <div className="text-sm text-slate-600">Unsure</div>
               </Card>
             </div>
 
-            {/* Correctness Percentage */}
-            <Card className="mb-8 p-8 border border-gray-300 bg-gray-50">
+            {/* Overall Correctness */}
+            <Card className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-semibold text-slate-900 mb-1">
-                    Overall Correctness
-                  </h3>
-                  <p className="text-slate-600">
-                    {verifiedCount} out of {totalCitations} citations verified
+                  <h3 className="text-lg font-semibold text-slate-900">Overall Correctness</h3>
+                  <p className="text-sm text-slate-600">
+                    {verifiedCount} out of {citations.length} citations verified
                   </p>
                 </div>
-                <div className="text-right">
-                  <div className="text-5xl font-bold text-slate-800">
-                    {correctnessPercentage}%
-                  </div>
+                <div className="text-4xl font-bold text-slate-900">
+                  {citations.length > 0 ? Math.round((verifiedCount / citations.length) * 100) : 0}%
                 </div>
               </div>
             </Card>
 
-            {/* Results Tables - Separated by Category */}
-            {/* Article/Book Table */}
-            {verificationResults.filter(r => r.category === "article").length > 0 && (
-              <div className="mb-8">
-                <h2 className="text-xl font-semibold text-slate-900 mb-4">Articles & Books</h2>
-                <Card className="border border-slate-200 overflow-hidden">
-                  <div className="w-full">
-                    <Table className="table-fixed w-full">
-                      <TableHeader>
-                        <TableRow className="bg-slate-50 border-b border-slate-200">
-                          <TableHead className="w-[5%] font-semibold text-slate-900">No.</TableHead>
-                          <TableHead className="w-[45%] font-semibold text-slate-900">Citation</TableHead>
-                          <TableHead className="w-[15%] font-semibold text-slate-900">Status</TableHead>
-                          <TableHead className="w-[20%] font-semibold text-slate-900">Reason</TableHead>
-                          <TableHead className="w-[15%] font-semibold text-slate-900">Link</TableHead>
+            {/* Cases */}
+            {resultsByCategory.case.length > 0 && (
+              <Card className="p-6">
+                <h3 className="text-lg font-semibold text-slate-900 mb-4">Cases</h3>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[5%]">No.</TableHead>
+                        <TableHead className="w-[45%]">Citation</TableHead>
+                        <TableHead className="w-[15%]">Status</TableHead>
+                        <TableHead className="w-[20%]">Reason</TableHead>
+                        <TableHead className="w-[15%]">Link</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {resultsByCategory.case.map((result) => (
+                        <TableRow key={result.id}>
+                          <TableCell className="font-medium">{result.number}</TableCell>
+                          <TableCell className="break-words whitespace-normal">{result.fullText}</TableCell>
+                          <TableCell>
+                            {result.status === "verified" && (
+                              <span className="inline-flex items-center gap-1 text-emerald-600">
+                                <CheckCircle2 className="w-4 h-4" />
+                                Verified
+                              </span>
+                            )}
+                            {result.status === "hallucinated" && (
+                              <span className="inline-flex items-center gap-1 text-red-600">
+                                <AlertCircle className="w-4 h-4" />
+                                Hallucinated
+                              </span>
+                            )}
+                            {result.status === "unsure" && (
+                              <span className="inline-flex items-center gap-1 text-amber-600">
+                                <HelpCircle className="w-4 h-4" />
+                                Unsure
+                              </span>
+                            )}
+                          </TableCell>
+                          <TableCell className="break-words whitespace-normal">
+                            <div className="space-y-1">
+                              <div className="text-sm">{result.reason}</div>
+                              {result.authority && getAuthorityBadge(result.authority)}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {result.link && (
+                              <a
+                                href={result.link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:underline text-sm"
+                              >
+                                View
+                              </a>
+                            )}
+                          </TableCell>
                         </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {verificationResults.filter(r => r.category === "article" && !isRepeatCitation(r).isRepeat).map((result) => (
-                          <TableRow key={result.id} className="border-b border-slate-200 hover:bg-slate-50">
-                            <TableCell className="py-4 text-slate-900 font-medium break-words whitespace-normal">
-                              {result.number}
-                            </TableCell>
-                            <TableCell className="py-4 text-slate-700 text-sm break-words whitespace-normal">
-                              {result.fullText}
-                            </TableCell>
-                            <TableCell className="py-4 break-words whitespace-normal">
-                              {getStatusBadge(result.status)}
-                            </TableCell>
-                            <TableCell className="py-4 text-slate-600 text-sm break-words whitespace-normal">
-                              <div className="flex flex-col gap-1">
-                                <span>{result.reason}</span>
-                                {result.authority && getAuthorityBadge(result.authority)}
-                              </div>
-                            </TableCell>
-                            <TableCell className="py-4 break-words whitespace-normal">
-                              {result.link ? (
-                                <a 
-                                  href={result.link} 
-                                  target="_blank" 
-                                  rel="noopener noreferrer"
-                                  className="text-indigo-600 hover:text-indigo-800 underline text-sm"
-                                >
-                                  View
-                                </a>
-                              ) : (
-                                <span className="text-slate-400 text-sm">-</span>
-                              )}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </Card>
-              </div>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </Card>
             )}
 
-            {/* Case Table */}
-            {verificationResults.filter(r => r.category === "case").length > 0 && (
-              <div className="mb-8">
-                <h2 className="text-xl font-semibold text-slate-900 mb-4">Cases</h2>
-                <Card className="border border-slate-200 overflow-hidden">
-                  <div className="w-full">
-                    <Table className="table-fixed w-full">
-                      <TableHeader>
-                        <TableRow className="bg-slate-50 border-b border-slate-200">
-                          <TableHead className="w-[5%] font-semibold text-slate-900">No.</TableHead>
-                          <TableHead className="w-[45%] font-semibold text-slate-900">Citation</TableHead>
-                          <TableHead className="w-[15%] font-semibold text-slate-900">Status</TableHead>
-                          <TableHead className="w-[20%] font-semibold text-slate-900">Reason</TableHead>
-                          <TableHead className="w-[15%] font-semibold text-slate-900">Link</TableHead>
+            {/* Articles */}
+            {resultsByCategory.article.length > 0 && (
+              <Card className="p-6">
+                <h3 className="text-lg font-semibold text-slate-900 mb-4">Articles</h3>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[5%]">No.</TableHead>
+                        <TableHead className="w-[45%]">Citation</TableHead>
+                        <TableHead className="w-[15%]">Status</TableHead>
+                        <TableHead className="w-[20%]">Reason</TableHead>
+                        <TableHead className="w-[15%]">Link</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {resultsByCategory.article.map((result) => (
+                        <TableRow key={result.id}>
+                          <TableCell className="font-medium">{result.number}</TableCell>
+                          <TableCell className="break-words whitespace-normal">{result.fullText}</TableCell>
+                          <TableCell>
+                            {result.status === "verified" && (
+                              <span className="inline-flex items-center gap-1 text-emerald-600">
+                                <CheckCircle2 className="w-4 h-4" />
+                                Verified
+                              </span>
+                            )}
+                            {result.status === "hallucinated" && (
+                              <span className="inline-flex items-center gap-1 text-red-600">
+                                <AlertCircle className="w-4 h-4" />
+                                Hallucinated
+                              </span>
+                            )}
+                            {result.status === "unsure" && (
+                              <span className="inline-flex items-center gap-1 text-amber-600">
+                                <HelpCircle className="w-4 h-4" />
+                                Unsure
+                              </span>
+                            )}
+                          </TableCell>
+                          <TableCell className="break-words whitespace-normal">
+                            <div className="space-y-1">
+                              <div className="text-sm">{result.reason}</div>
+                              {result.authority && getAuthorityBadge(result.authority)}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {result.link && (
+                              <a
+                                href={result.link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:underline text-sm"
+                              >
+                                View
+                              </a>
+                            )}
+                          </TableCell>
                         </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {verificationResults.filter(r => r.category === "case" && !isRepeatCitation(r).isRepeat).map((result) => (
-                          <TableRow key={result.id} className="border-b border-slate-200 hover:bg-slate-50">
-                            <TableCell className="py-4 text-slate-900 font-medium break-words whitespace-normal">
-                              {result.number}
-                            </TableCell>
-                            <TableCell className="py-4 text-slate-700 text-sm break-words whitespace-normal">
-                              {result.fullText}
-                            </TableCell>
-                            <TableCell className="py-4 break-words whitespace-normal">
-                              {getStatusBadge(result.status)}
-                            </TableCell>
-                            <TableCell className="py-4 text-slate-600 text-sm break-words whitespace-normal">
-                              <div className="flex flex-col gap-1">
-                                <span>{result.reason}</span>
-                                {result.authority && getAuthorityBadge(result.authority)}
-                              </div>
-                            </TableCell>
-                            <TableCell className="py-4 break-words whitespace-normal">
-                              {result.link ? (
-                                <a 
-                                  href={result.link} 
-                                  target="_blank" 
-                                  rel="noopener noreferrer"
-                                  className="text-indigo-600 hover:text-indigo-800 underline text-sm"
-                                >
-                                  View
-                                </a>
-                              ) : (
-                                <span className="text-slate-400 text-sm">-</span>
-                              )}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </Card>
-              </div>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </Card>
             )}
 
-            {/* Other Table */}
-            {verificationResults.filter(r => r.category === "other").length > 0 && (
-              <div className="mb-8">
-                <h2 className="text-xl font-semibold text-slate-900 mb-4">Other</h2>
-                <Card className="border border-slate-200 overflow-hidden">
-                  <div className="w-full">
-                    <Table className="table-fixed w-full">
-                      <TableHeader>
-                        <TableRow className="bg-slate-50 border-b border-slate-200">
-                          <TableHead className="w-[5%] font-semibold text-slate-900">No.</TableHead>
-                          <TableHead className="w-[45%] font-semibold text-slate-900">Citation</TableHead>
-                          <TableHead className="w-[15%] font-semibold text-slate-900">Status</TableHead>
-                          <TableHead className="w-[20%] font-semibold text-slate-900">Reason</TableHead>
-                          <TableHead className="w-[15%] font-semibold text-slate-900">Link</TableHead>
+            {/* Books */}
+            {resultsByCategory.book.length > 0 && (
+              <Card className="p-6">
+                <h3 className="text-lg font-semibold text-slate-900 mb-4">Books</h3>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[5%]">No.</TableHead>
+                        <TableHead className="w-[45%]">Citation</TableHead>
+                        <TableHead className="w-[15%]">Status</TableHead>
+                        <TableHead className="w-[20%]">Reason</TableHead>
+                        <TableHead className="w-[15%]">Link</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {resultsByCategory.book.map((result) => (
+                        <TableRow key={result.id}>
+                          <TableCell className="font-medium">{result.number}</TableCell>
+                          <TableCell className="break-words whitespace-normal">{result.fullText}</TableCell>
+                          <TableCell>
+                            {result.status === "verified" && (
+                              <span className="inline-flex items-center gap-1 text-emerald-600">
+                                <CheckCircle2 className="w-4 h-4" />
+                                Verified
+                              </span>
+                            )}
+                            {result.status === "hallucinated" && (
+                              <span className="inline-flex items-center gap-1 text-red-600">
+                                <AlertCircle className="w-4 h-4" />
+                                Hallucinated
+                              </span>
+                            )}
+                            {result.status === "unsure" && (
+                              <span className="inline-flex items-center gap-1 text-amber-600">
+                                <HelpCircle className="w-4 h-4" />
+                                Unsure
+                              </span>
+                            )}
+                          </TableCell>
+                          <TableCell className="break-words whitespace-normal">
+                            <div className="space-y-1">
+                              <div className="text-sm">{result.reason}</div>
+                              {result.authority && getAuthorityBadge(result.authority)}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {result.link && (
+                              <a
+                                href={result.link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:underline text-sm"
+                              >
+                                View
+                              </a>
+                            )}
+                          </TableCell>
                         </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {verificationResults.filter(r => r.category === "other" && !isRepeatCitation(r).isRepeat).map((result) => (
-                          <TableRow key={result.id} className="border-b border-slate-200 hover:bg-slate-50">
-                            <TableCell className="py-4 text-slate-900 font-medium break-words whitespace-normal">
-                              {result.number}
-                            </TableCell>
-                            <TableCell className="py-4 text-slate-700 text-sm break-words whitespace-normal">
-                              {result.fullText}
-                            </TableCell>
-                            <TableCell className="py-4 break-words whitespace-normal">
-                              {getStatusBadge(result.status)}
-                            </TableCell>
-                            <TableCell className="py-4 text-slate-600 text-sm break-words whitespace-normal">
-                              <div className="flex flex-col gap-1">
-                                <span>{result.reason}</span>
-                                {result.authority && getAuthorityBadge(result.authority)}
-                              </div>
-                            </TableCell>
-                            <TableCell className="py-4 break-words whitespace-normal">
-                              {result.link ? (
-                                <a 
-                                  href={result.link} 
-                                  target="_blank" 
-                                  rel="noopener noreferrer"
-                                  className="text-indigo-600 hover:text-indigo-800 underline text-sm"
-                                >
-                                  View
-                                </a>
-                              ) : (
-                                <span className="text-slate-400 text-sm">-</span>
-                              )}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </Card>
-              </div>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </Card>
+            )}
+
+            {/* Policy Papers */}
+            {resultsByCategory.policy_paper.length > 0 && (
+              <Card className="p-6">
+                <h3 className="text-lg font-semibold text-slate-900 mb-4">Policy Papers</h3>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[5%]">No.</TableHead>
+                        <TableHead className="w-[45%]">Citation</TableHead>
+                        <TableHead className="w-[15%]">Status</TableHead>
+                        <TableHead className="w-[20%]">Reason</TableHead>
+                        <TableHead className="w-[15%]">Link</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {resultsByCategory.policy_paper.map((result) => (
+                        <TableRow key={result.id}>
+                          <TableCell className="font-medium">{result.number}</TableCell>
+                          <TableCell className="break-words whitespace-normal">{result.fullText}</TableCell>
+                          <TableCell>
+                            {result.status === "verified" && (
+                              <span className="inline-flex items-center gap-1 text-emerald-600">
+                                <CheckCircle2 className="w-4 h-4" />
+                                Verified
+                              </span>
+                            )}
+                            {result.status === "hallucinated" && (
+                              <span className="inline-flex items-center gap-1 text-red-600">
+                                <AlertCircle className="w-4 h-4" />
+                                Hallucinated
+                              </span>
+                            )}
+                            {result.status === "unsure" && (
+                              <span className="inline-flex items-center gap-1 text-amber-600">
+                                <HelpCircle className="w-4 h-4" />
+                                Unsure
+                              </span>
+                            )}
+                          </TableCell>
+                          <TableCell className="break-words whitespace-normal">
+                            <div className="space-y-1">
+                              <div className="text-sm">{result.reason}</div>
+                              {result.authority && getAuthorityBadge(result.authority)}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {result.link && (
+                              <a
+                                href={result.link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:underline text-sm"
+                              >
+                                View
+                              </a>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </Card>
+            )}
+
+            {/* Websites */}
+            {resultsByCategory.website.length > 0 && (
+              <Card className="p-6">
+                <h3 className="text-lg font-semibold text-slate-900 mb-4">Websites</h3>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[5%]">No.</TableHead>
+                        <TableHead className="w-[45%]">Citation</TableHead>
+                        <TableHead className="w-[15%]">Status</TableHead>
+                        <TableHead className="w-[20%]">Reason</TableHead>
+                        <TableHead className="w-[15%]">Link</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {resultsByCategory.website.map((result) => (
+                        <TableRow key={result.id}>
+                          <TableCell className="font-medium">{result.number}</TableCell>
+                          <TableCell className="break-words whitespace-normal">{result.fullText}</TableCell>
+                          <TableCell>
+                            {result.status === "verified" && (
+                              <span className="inline-flex items-center gap-1 text-emerald-600">
+                                <CheckCircle2 className="w-4 h-4" />
+                                Verified
+                              </span>
+                            )}
+                            {result.status === "hallucinated" && (
+                              <span className="inline-flex items-center gap-1 text-red-600">
+                                <AlertCircle className="w-4 h-4" />
+                                Hallucinated
+                              </span>
+                            )}
+                            {result.status === "unsure" && (
+                              <span className="inline-flex items-center gap-1 text-amber-600">
+                                <HelpCircle className="w-4 h-4" />
+                                Unsure
+                              </span>
+                            )}
+                          </TableCell>
+                          <TableCell className="break-words whitespace-normal">
+                            <div className="space-y-1">
+                              <div className="text-sm">{result.reason}</div>
+                              {result.authority && getAuthorityBadge(result.authority)}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {result.link && (
+                              <a
+                                href={result.link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:underline text-sm"
+                              >
+                                View
+                              </a>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </Card>
+            )}
+
+            {/* Statutes */}
+            {resultsByCategory.statute.length > 0 && (
+              <Card className="p-6">
+                <h3 className="text-lg font-semibold text-slate-900 mb-4">Statutes</h3>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[5%]">No.</TableHead>
+                        <TableHead className="w-[45%]">Citation</TableHead>
+                        <TableHead className="w-[15%]">Status</TableHead>
+                        <TableHead className="w-[20%]">Reason</TableHead>
+                        <TableHead className="w-[15%]">Link</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {resultsByCategory.statute.map((result) => (
+                        <TableRow key={result.id}>
+                          <TableCell className="font-medium">{result.number}</TableCell>
+                          <TableCell className="break-words whitespace-normal">{result.fullText}</TableCell>
+                          <TableCell>
+                            {result.status === "verified" && (
+                              <span className="inline-flex items-center gap-1 text-emerald-600">
+                                <CheckCircle2 className="w-4 h-4" />
+                                Verified
+                              </span>
+                            )}
+                            {result.status === "hallucinated" && (
+                              <span className="inline-flex items-center gap-1 text-red-600">
+                                <AlertCircle className="w-4 h-4" />
+                                Hallucinated
+                              </span>
+                            )}
+                            {result.status === "unsure" && (
+                              <span className="inline-flex items-center gap-1 text-amber-600">
+                                <HelpCircle className="w-4 h-4" />
+                                Unsure
+                              </span>
+                            )}
+                          </TableCell>
+                          <TableCell className="break-words whitespace-normal">
+                            <div className="space-y-1">
+                              <div className="text-sm">{result.reason}</div>
+                              {result.authority && getAuthorityBadge(result.authority)}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {result.link && (
+                              <a
+                                href={result.link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:underline text-sm"
+                              >
+                                View
+                              </a>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </Card>
+            )}
+
+            {/* Other */}
+            {resultsByCategory.other.length > 0 && (
+              <Card className="p-6">
+                <h3 className="text-lg font-semibold text-slate-900 mb-4">Other</h3>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[5%]">No.</TableHead>
+                        <TableHead className="w-[45%]">Citation</TableHead>
+                        <TableHead className="w-[15%]">Status</TableHead>
+                        <TableHead className="w-[20%]">Reason</TableHead>
+                        <TableHead className="w-[15%]">Link</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {resultsByCategory.other.map((result) => (
+                        <TableRow key={result.id}>
+                          <TableCell className="font-medium">{result.number}</TableCell>
+                          <TableCell className="break-words whitespace-normal">{result.fullText}</TableCell>
+                          <TableCell>
+                            {result.status === "verified" && (
+                              <span className="inline-flex items-center gap-1 text-emerald-600">
+                                <CheckCircle2 className="w-4 h-4" />
+                                Verified
+                              </span>
+                            )}
+                            {result.status === "hallucinated" && (
+                              <span className="inline-flex items-center gap-1 text-red-600">
+                                <AlertCircle className="w-4 h-4" />
+                                Hallucinated
+                              </span>
+                            )}
+                            {result.status === "unsure" && (
+                              <span className="inline-flex items-center gap-1 text-amber-600">
+                                <HelpCircle className="w-4 h-4" />
+                                Unsure
+                              </span>
+                            )}
+                          </TableCell>
+                          <TableCell className="break-words whitespace-normal">
+                            <div className="space-y-1">
+                              <div className="text-sm">{result.reason}</div>
+                              {result.authority && getAuthorityBadge(result.authority)}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {result.link && (
+                              <a
+                                href={result.link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:underline text-sm"
+                              >
+                                View
+                              </a>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </Card>
             )}
 
             {/* Action Buttons */}
-            <div className="flex gap-4">
-              <Button
-                variant="outline"
-                className="border-slate-300 text-slate-700 hover:bg-slate-50"
-                onClick={() => setLocation("/")}
-              >
+            <div className="flex justify-between">
+              <Button variant="outline" onClick={() => setLocation("/")}>
                 Done
               </Button>
-              <Button
-                className="bg-slate-700 hover:bg-slate-800 text-white gap-2"
-                onClick={handleExport}
-              >
+              <Button onClick={handleExportCSV} className="gap-2">
                 <Download className="w-4 h-4" />
                 Export to CSV
               </Button>
             </div>
-          </>
+          </div>
         )}
       </div>
     </div>
