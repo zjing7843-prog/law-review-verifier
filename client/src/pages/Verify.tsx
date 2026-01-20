@@ -428,7 +428,7 @@ export default function Verify() {
                   </Card>
                   <Card className="p-4">
                     <div className="text-2xl font-bold text-red-600">{hallucinatedCount}</div>
-                    <div className="text-sm text-slate-600">Hallucinated</div>
+                    <div className="text-sm text-slate-600">Risk of hallucination</div>
                   </Card>
                   <Card className="p-4">
                     <div className="text-2xl font-bold text-amber-600">{unsureCount}</div>
@@ -459,10 +459,10 @@ export default function Verify() {
                         <Table>
                           <TableHeader>
                             <TableRow>
-                              <TableHead className="w-[5%]">No.</TableHead>
-                              <TableHead className="w-[40%]">Citation</TableHead>
-                              <TableHead className="w-[10%]">Status</TableHead>
-                              <TableHead className="w-[35%]">Reason</TableHead>
+                    <TableHead className="w-[5%]">No.</TableHead>
+                    <TableHead className="w-[45%]">Citation</TableHead>
+                    <TableHead className="w-[10%]">Status</TableHead>
+                    <TableHead className="w-[30%]">Reason</TableHead>
                               <TableHead className="w-[10%]">Link</TableHead>
                             </TableRow>
                           </TableHeader>
@@ -481,7 +481,7 @@ export default function Verify() {
                                   )}
                                   {result.status === "hallucinated" && (
                                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">
-                                      ⚠ Hallucinated
+                                      ⚠ Risk of hallucination
                                     </span>
                                   )}
                                   {result.status === "unsure" && (
@@ -590,9 +590,9 @@ export default function Verify() {
                       <TableHeader>
                         <TableRow>
                           <TableHead className="w-[5%]">No.</TableHead>
-                          <TableHead className="w-[40%]">Citation</TableHead>
+                          <TableHead className="w-[45%]">Citation</TableHead>
                           <TableHead className="w-[10%]">Status</TableHead>
-                          <TableHead className="w-[35%]">Reason</TableHead>
+                          <TableHead className="w-[30%]">Reason</TableHead>
                           <TableHead className="w-[10%]">Link</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -611,7 +611,7 @@ export default function Verify() {
                               )}
                               {result.status === "hallucinated" && (
                                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">
-                                  ⚠ Hallucinated
+                                  ⚠ Risk of hallucination
                                 </span>
                               )}
                               {result.status === "unsure" && (

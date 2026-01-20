@@ -461,3 +461,9 @@
 ## Update Home Page Text and Placeholder
 - [x] Change label from "Paste Your Citations" to "Paste all footnotes for a preliminary verification"
 - [x] Update placeholder text to show example citations: "R v Adomako [1995] 1 AC 171 (HL).\nConsolidated Version of the Treaty on the Functioning of the European Union [2012] OJ C 326/47, art 102.\n..."
+
+
+## Fix Verification Results Table Layout
+- [x] Set fixed column widths: No. (5%), Citation (45%), Status (10%), Reason (30%), Link (10%)
+- [x] Apply consistent widths across all category tables (Cases, Books, Statutes, Policy Papers)
+- [x] Change hallucination status label from "⚠ Hallucinated" to "⚠ Risk of hallucination"
