@@ -188,7 +188,7 @@ export default function Parse() {
         {isLoading && (
           <div className="flex flex-col items-center justify-center py-16">
             <Loader2 className="w-12 h-12 text-blue-600 animate-spin mb-4" />
-            <p className="text-lg font-medium text-slate-900 mb-2">Categorizing citations with AI...</p>
+            <p className="text-lg font-medium text-slate-900 mb-2">Classifying footnotes to allow targeted verification</p>
             <p className="text-sm text-slate-600">This may take a few moments</p>
           </div>
         )}

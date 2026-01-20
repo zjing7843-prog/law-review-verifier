@@ -160,8 +160,8 @@ export default function Home() {
             <Textarea
               value={citations}
               onChange={(e) => setCitations(e.target.value)}
-              placeholder="Gilberto KK Leung, 'Medical manslaughter in Hong Kong: what now?' (2023) Hong Kong Med J 4, 4; Oliver Quick, 'Medical manslaughter – time for a rethink?' (2017) 85 (4) Medico-Legal J 173, 174.&#10;Smith, J. and Johnson, M., 'The Role of Artificial Intelligence in Modern Law' (2023) Tech Law Review 45, 67.&#10;Williams, A., 'Digital Rights and Privacy Protection' (2022) Cyber Law Journal 12, 34.&#10;..."
-              className="min-h-[400px] font-mono text-sm"
+              placeholder="Thomas K. Cheng and Julian Nowag, Algorithmic Predation and Exclusion, 25 University of Pennsylvania Journal of Business Law 41 (2023).&#10;Sherman Antitrust Act 1890, 15 U.S.C. § 2 https://www.law.cornell.edu/uscode/text/15/2 accessed [20 Jan 2025]."
+              className="min-h-[200px] font-mono text-sm"
             />
           </div>
 

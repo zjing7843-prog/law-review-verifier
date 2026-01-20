@@ -350,3 +350,9 @@
 - [x] Update to pdf-parse v2 API (new PDFParse({ data: buffer }))
 - [x] Improve error handling and logging
 - [ ] Verify footnote extraction works correctly (ready for user testing)
+
+
+## UI Text and Styling Adjustments
+- [x] Change loading message from "Categorizing citations with AI..." to "Classifying footnotes to allow targeted verification"
+- [x] Make citation input box smaller (reduce height from 400px to 200px)
+- [x] Update placeholder text to show example citations with proper formatting
