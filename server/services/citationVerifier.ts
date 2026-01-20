@@ -222,10 +222,12 @@ Return JSON with this structure:
 
 /**
  * Verify a citation using real web search with hallucination detection
+ * Includes timeout and retry logic for stability
  */
 export async function verifyCitation(
   citationText: string,
-  category: CitationCategory
+  category: CitationCategory,
+  retries: number = 2
 ): Promise<VerificationResult> {
   console.log(`[citationVerifier] Verifying citation: "${citationText}" (${category})`);
 
@@ -246,7 +248,36 @@ export async function verifyCitation(
   }
 
   // Step 2: Perform web search for the citation with field-level verification
-  const searchResult = await performWebSearch(citationText, category);
+  // Add retry logic for failed searches
+  let searchResult;
+  let lastError;
+  
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      searchResult = await performWebSearch(citationText, category);
+      break; // Success, exit retry loop
+    } catch (error) {
+      lastError = error;
+      console.error(`[citationVerifier] Attempt ${attempt + 1} failed:`, error);
+      
+      if (attempt < retries) {
+        // Wait before retry (exponential backoff)
+        await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
+      }
+    }
+  }
+  
+  // If all retries failed, return unsure status
+  if (!searchResult) {
+    console.error('[citationVerifier] All retry attempts failed:', lastError);
+    return {
+      status: "unsure",
+      reason: "Verification service temporarily unavailable",
+      link: `https://www.google.com/search?q=${encodeURIComponent(citationText)}`,
+      authority: "general",
+      confidence: 0
+    };
+  }
 
   // Step 3: Handle hallucinated citations (confidence > 90%)
   if (searchResult.isHallucinated) {

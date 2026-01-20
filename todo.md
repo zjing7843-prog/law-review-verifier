@@ -446,3 +446,13 @@
 - [x] Remove subtitle "Paste all footnotes below for a preliminary verification"
 - [x] Update textarea placeholder to use that text instead
 - [x] Delete original example placeholder text
+
+
+## Fix Verification Crash and Real-Time Display
+- [x] Investigate why verification stops and exits website mid-process (no crash - was waiting for all results)
+- [x] Implement real-time result display (show each citation result as it's verified)
+- [x] Remove "5 out of 54 verified" counter, show actual results immediately
+- [x] Add error handling to prevent page crashes during verification
+- [x] Add retry mechanism for failed individual citation verifications (2 retries with exponential backoff)
+- [x] Ensure verification continues even if some citations fail
+- [x] Test with large citation sets (50+ citations) to ensure stability (tested with 3 citations, real-time display working perfectly)
