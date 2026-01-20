@@ -470,7 +470,7 @@ export default function Verify() {
                             {results.map((result) => (
                               <TableRow key={result.id}>
                                 <TableCell className="font-medium w-[5%]">{result.number}</TableCell>
-                                <TableCell className="break-words whitespace-normal text-sm w-[45%]">
+                                <TableCell className="break-words whitespace-normal text-sm w-[45%] max-w-0 overflow-wrap">
                                   {result.fullText}
                                 </TableCell>
                                 <TableCell className="w-[10%]">
@@ -490,9 +490,9 @@ export default function Verify() {
                                     </span>
                                   )}
                                 </TableCell>
-                                <TableCell className="text-sm text-slate-600 w-[30%]">
+                                <TableCell className="text-sm text-slate-600 w-[30%] max-w-0">
                                   <div className="space-y-1">
-                                    <div>{result.reason}</div>
+                                    <div className="break-words">{result.reason}</div>
                                     {result.authority && result.confidence > 0 && (
                                       <div className="flex items-center gap-2">
                                         {getAuthorityBadge(result.authority)}
@@ -600,7 +600,7 @@ export default function Verify() {
                         {results.map((result) => (
                           <TableRow key={result.id}>
                             <TableCell className="font-medium w-[5%]">{result.number}</TableCell>
-                            <TableCell className="break-words whitespace-normal text-sm w-[45%]">
+                            <TableCell className="break-words whitespace-normal text-sm w-[45%] max-w-0 overflow-wrap">
                               {result.fullText}
                             </TableCell>
                             <TableCell className="w-[10%]">
@@ -620,9 +620,9 @@ export default function Verify() {
                                 </span>
                               )}
                             </TableCell>
-                            <TableCell className="text-sm text-slate-600 w-[30%]">
+                            <TableCell className="text-sm text-slate-600 w-[30%] max-w-0">
                               <div className="space-y-1">
-                                <div>{result.reason}</div>
+                                <div className="break-words">{result.reason}</div>
                                 {result.authority && result.confidence > 0 && (
                                   <div className="flex items-center gap-2">
                                     {getAuthorityBadge(result.authority)}

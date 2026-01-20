@@ -469,3 +469,10 @@
 - [x] Change hallucination status label from "⚠ Hallucinated" to "⚠ Risk of hallucination"
 - [x] Fix column widths not displaying correctly (Citation too narrow, Reason too wide)
 - [x] Add table-fixed layout and enforce width constraints properly
+
+
+## Fix Text Wrapping in Verification Results Table
+- [x] Add proper word-wrap and overflow handling to prevent text overlapping
+- [x] Ensure Citation column text wraps within 45% width boundary
+- [x] Ensure Reason column text wraps within 30% width boundary
+- [x] Test with long citations to verify no overlapping occurs
