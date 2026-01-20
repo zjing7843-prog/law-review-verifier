@@ -28,6 +28,7 @@ export default function Parse() {
   const [editValues, setEditValues] = useState<ParsedCitation | null>(null);
 
   const [isLoading, setIsLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
   const categorizeMutation = trpc.citations.categorize.useMutation();
 
   useEffect(() => {
@@ -44,10 +45,12 @@ export default function Parse() {
 
   const categorizeCitationsWithLLM = async (citationsText: string) => {
     setIsLoading(true);
+    setProgress(0);
     try {
       // Split into lines and filter
       const lines = citationsText.split('\n').filter(l => l.trim());
       const allCitations: string[] = [];
+      setProgress(10); // Initial parsing
       
       // Split by semicolon for multiple citations within one line
       lines.forEach(line => {
@@ -56,9 +59,11 @@ export default function Parse() {
       });
 
       // Call LLM to categorize all citations
+      setProgress(30); // Starting LLM categorization
       const result = await categorizeMutation.mutateAsync({
         citations: allCitations
       });
+      setProgress(80); // LLM categorization complete
 
       // Build parsed citations with LLM results
       const parsed: ParsedCitation[] = result.map((item, index) => ({
@@ -69,6 +74,7 @@ export default function Parse() {
       }));
 
       console.log('LLM categorized citations:', parsed);
+      setProgress(100); // Finalizing
       setCitations(parsed);
     } catch (error) {
       console.error('Failed to categorize citations:', error);
@@ -187,9 +193,20 @@ export default function Parse() {
       <div className="container mx-auto px-4 py-8">
         {isLoading && (
           <div className="flex flex-col items-center justify-center py-16">
-                  <Loader2 className="w-12 h-12 text-slate-600 animate-spin mb-4" />
-            <p className="text-lg font-medium text-slate-900 mb-2">Classifying footnotes to allow targeted verification</p>
-            <p className="text-sm text-slate-600">This may take a few moments</p>
+            <Loader2 className="w-12 h-12 text-slate-600 animate-spin mb-4" />
+            <p className="text-lg font-medium text-slate-900 mb-4">Classifying footnotes to allow targeted verification</p>
+            <div className="w-full max-w-md">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-slate-600">Progress</span>
+                <span className="text-sm font-medium text-slate-900">{progress}%</span>
+              </div>
+              <div className="w-full bg-slate-200 rounded-full h-2.5">
+                <div 
+                  className="bg-slate-900 h-2.5 rounded-full transition-all duration-300"
+                  style={{ width: `${progress}%` }}
+                ></div>
+              </div>
+            </div>
           </div>
         )}
         {!isLoading && (

@@ -384,3 +384,10 @@
 - [x] Extract complete footnotes without losing any words
 - [x] Handle multi-line footnotes and continuation across pages
 - [ ] Test with user's NOWAG.pdf to verify accuracy (ready for testing)
+
+
+## Add Progress Bar and Fix Missing Category Badges
+- [x] Replace "This may take a few moments" with progress bar showing percentage
+- [x] Track LLM categorization progress and update percentage in real-time (0% → 10% → 30% → 80% → 100%)
+- [x] Fix missing category badges in Verify page table (rows 1-9 missing badges)
+- [x] Ensure all citations display their category badges correctly (added all 8 categories to getCategoryBadge)

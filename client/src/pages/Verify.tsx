@@ -497,9 +497,21 @@ export default function Verify() {
       case "case":
         return <span className="px-2 py-1 rounded-full bg-indigo-600 text-white text-xs font-medium">Case</span>;
       case "article":
-        return <span className="px-2 py-1 rounded-full bg-emerald-600 text-white text-xs font-medium">Article/Book</span>;
+        return <span className="px-2 py-1 rounded-full bg-emerald-600 text-white text-xs font-medium">Article</span>;
+      case "book":
+        return <span className="px-2 py-1 rounded-full bg-teal-600 text-white text-xs font-medium">Book</span>;
+      case "policy_paper":
+        return <span className="px-2 py-1 rounded-full bg-violet-600 text-white text-xs font-medium">Policy Paper</span>;
+      case "website":
+        return <span className="px-2 py-1 rounded-full bg-cyan-600 text-white text-xs font-medium">Website</span>;
+      case "statute":
+        return <span className="px-2 py-1 rounded-full bg-amber-600 text-white text-xs font-medium">Statute</span>;
+      case "explanatory_text":
+        return <span className="px-2 py-1 rounded-full bg-slate-300 text-slate-600 text-xs font-medium italic">Explanatory (skipped)</span>;
       case "other":
         return <span className="px-2 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-medium">Other</span>;
+      default:
+        return <span className="px-2 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-medium">{category}</span>;
     }
   };
 
