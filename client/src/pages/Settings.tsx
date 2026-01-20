@@ -45,13 +45,12 @@ export default function Settings() {
   });
 
   const handleSave = () => {
-    if (provider !== "manus" && !apiKey && !settings?.apiKey) {
-      toast.error("API key is required for custom LLM providers");
-      return;
-    }
+    // Provider is auto-detected from API key format
+    const detectedProvider = apiKey.startsWith('sk-ant-') ? 'anthropic' : 
+                            apiKey.startsWith('sk-') ? 'openai' : 'manus';
 
     saveMutation.mutate({
-      provider,
+      provider: detectedProvider,
       apiKey: apiKey || undefined, // Only send if changed
       modelName: modelName || undefined
     });
@@ -101,67 +100,44 @@ export default function Settings() {
 
         <Card className="p-6">
           <div className="space-y-6">
-            {/* Info Banner */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex gap-3">
-              <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-              <div className="text-sm text-slate-700">
-                <p className="font-medium text-blue-900 mb-1">About LLM Configuration</p>
-                <p>The citation categorization feature uses AI to automatically classify citations as cases, articles, or other types. You can choose to use the built-in Manus LLM (free for testing) or provide your own API key for OpenAI or Anthropic.</p>
-              </div>
-            </div>
-
-            {/* Provider Selection */}
+            {/* API Key Input */}
             <div className="space-y-2">
-              <Label htmlFor="provider">LLM Provider</Label>
-              <Select value={provider} onValueChange={(v) => setProvider(v as LlmProvider)}>
-                <SelectTrigger id="provider">
-                  <SelectValue placeholder="Select provider" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="manus">Manus LLM (Built-in, for testing)</SelectItem>
-                  <SelectItem value="openai">OpenAI (GPT-4, GPT-3.5)</SelectItem>
-                  <SelectItem value="anthropic">Anthropic (Claude)</SelectItem>
-                </SelectContent>
-              </Select>
-              {provider === "manus" && (
-                <p className="text-xs text-slate-500">
-                  Uses the built-in Manus LLM. No API key required. Suitable for testing and demo purposes.
-                </p>
-              )}
+              <Label htmlFor="apiKey">Enter your API key</Label>
+              <Input
+                id="apiKey"
+                type="password"
+                placeholder={settings?.apiKey ? "••••••••••••••••" : "Paste your OpenAI or Anthropic API key here"}
+                value={apiKey}
+                onChange={(e) => {
+                  const key = e.target.value;
+                  setApiKey(key);
+                  // Auto-detect provider from key format
+                  if (key.startsWith('sk-ant-')) {
+                    setProvider('anthropic');
+                  } else if (key.startsWith('sk-')) {
+                    setProvider('openai');
+                  } else if (!key) {
+                    setProvider('manus');
+                  }
+                }}
+              />
+              <p className="text-xs text-slate-500">
+                System will auto-detect provider (OpenAI or Anthropic) from your key format. Leave empty to use built-in Manus LLM for testing.
+              </p>
             </div>
 
-            {/* API Key (only for custom providers) */}
-            {provider !== "manus" && (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="apiKey">API Key</Label>
-                  <Input
-                    id="apiKey"
-                    type="password"
-                    placeholder={settings?.apiKey ? "••••••••••••••••" : "Enter your API key"}
-                    value={apiKey}
-                    onChange={(e) => setApiKey(e.target.value)}
-                  />
-                  <p className="text-xs text-slate-500">
-                    {provider === "openai" && "Get your API key from platform.openai.com"}
-                    {provider === "anthropic" && "Get your API key from console.anthropic.com"}
-                  </p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="modelName">Model Name (Optional)</Label>
-                  <Input
-                    id="modelName"
-                    placeholder={provider === "openai" ? "e.g., gpt-4, gpt-3.5-turbo" : "e.g., claude-3-sonnet-20240229"}
-                    value={modelName}
-                    onChange={(e) => setModelName(e.target.value)}
-                  />
-                  <p className="text-xs text-slate-500">
-                    Leave empty to use the default model for the selected provider
-                  </p>
-                </div>
-              </>
-            )}
+            <div className="space-y-2">
+              <Label htmlFor="modelName">Model Name (Optional)</Label>
+              <Input
+                id="modelName"
+                placeholder="e.g., gpt-4, claude-3-sonnet-20240229"
+                value={modelName}
+                onChange={(e) => setModelName(e.target.value)}
+              />
+              <p className="text-xs text-slate-500">
+                Leave empty to use the default model for the detected provider
+              </p>
+            </div>
 
             {/* Current Settings Display */}
             {settings && (

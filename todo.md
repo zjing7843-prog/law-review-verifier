@@ -391,3 +391,12 @@
 - [x] Track LLM categorization progress and update percentage in real-time (0% → 10% → 30% → 80% → 100%)
 - [x] Fix missing category badges in Verify page table (rows 1-9 missing badges)
 - [x] Ensure all citations display their category badges correctly (added all 8 categories to getCategoryBadge)
+
+
+## Revise Settings Page LLM Configuration
+- [x] Remove "Uses the built-in Manus LLM..." info text
+- [x] Change "LLM Provider" dropdown to "Enter your API key" text input
+- [x] Implement auto-detection of provider from API key format (sk-... = OpenAI, sk-ant-... = Anthropic)
+- [x] Remove "About LLM Configuration" section
+- [x] Keep Manus LLM as default for testing when no API key is provided
+- [x] Backend already supports provider detection and appropriate API usage
