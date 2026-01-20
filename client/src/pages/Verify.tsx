@@ -326,9 +326,9 @@ export default function Verify() {
     other: verificationResults.filter((r) => r.category === "other" && !r.isRepeat),
   };
 
-  const verifiedCount = verificationResults.filter((r) => r.status === "verified").length;
-  const hallucinatedCount = verificationResults.filter((r) => r.status === "hallucinated").length;
-  const unsureCount = verificationResults.filter((r) => r.status === "unsure").length;
+  const verifiedCount = verificationResults.filter((r) => r.status === "verified" && !r.isRepeat).length;
+  const hallucinatedCount = verificationResults.filter((r) => r.status === "hallucinated" && !r.isRepeat).length;
+  const unsureCount = verificationResults.filter((r) => r.status === "unsure" && !r.isRepeat).length;
 
   return (
     <div className="min-h-screen bg-white">

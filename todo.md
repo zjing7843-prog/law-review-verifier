@@ -628,3 +628,20 @@
 - [x] Changed "Link provided but returned X status (may be broken or restricted)" → "Link returned X status"
 - [x] Changed "Could not verify via web search" → "Could not verify"
 - [x] Changed "Link verified - official source accessible" → "Official source accessible"
+
+
+## Fix Statistics Calculation on Results Page (CRITICAL)
+- [x] Total count showing wrong number - should only count citations that went to verification
+- [x] Unsure count is incorrect
+- [x] Need to filter out cross-references and explanatory text from counts
+- [x] Ensure verifiedCount + hallucinatedCount + unsureCount = total shown
+- [x] Added !r.isRepeat filter to all three count calculations
+
+## Improve Hallucination Detection for Citation Numbers (CRITICAL)
+- [x] When title/source matches but citation number is wrong, mark as hallucinated
+- [x] Example: "OJ C259/1" (correct) vs "OJ C259/990" (hallucinated)
+- [x] Example: "European Commission Guidelines..." with wrong OJ reference number
+- [x] Enhance LLM prompt or verification logic to catch number/page mismatches
+- [x] Should detect when core document exists but specific citation is fabricated
+- [x] Added explicit instruction: "Title/source matches BUT citation number/page is wrong"
+- [x] Added emphasis: "When core document exists but specific citation identifier is fabricated, this is HALLUCINATION"

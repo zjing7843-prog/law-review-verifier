@@ -189,15 +189,17 @@ Category: ${category}
 
 CRITICAL INSTRUCTIONS:
 1. Search for this citation on the web using official legal databases, government sources, and academic publishers
-2. Check EVERY field: author names, year, title, journal/reporter, volume, page numbers, paragraph numbers
+2. Check EVERY field: author names, year, title, journal/reporter, volume, page numbers, paragraph numbers, citation identifiers
 3. Be VERY CAREFUL about marking citations as hallucinated - only do so when confidence > 90%
 4. Mark as HALLUCINATED if:
+   - Title/source matches BUT citation number/page is wrong (e.g., "OJ C259/1" exists but citation says "OJ C259/990")
    - Author name exists but is attached to a different work
    - Year is wrong (e.g., article exists but published in different year)
-   - Page/paragraph numbers don't exist (e.g., OJ C259/990 when only C259/1 exists)
+   - Specific page/paragraph numbers don't exist in the found document
    - Title doesn't exist at all in any database
-5. Mark as UNSURE if you find similar citations but can't verify exact match
-6. Mark as VERIFIED only if all fields match exactly
+5. IMPORTANT: When the core document exists but the specific citation identifier is fabricated, this is HALLUCINATION, not just "unsure"
+6. Mark as UNSURE if you find similar citations but can't verify exact match due to access issues or ambiguity
+7. Mark as VERIFIED only if all fields match exactly
 
 Return JSON with this structure:
 {
