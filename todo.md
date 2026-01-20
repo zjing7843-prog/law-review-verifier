@@ -456,3 +456,8 @@
 - [x] Add retry mechanism for failed individual citation verifications (2 retries with exponential backoff)
 - [x] Ensure verification continues even if some citations fail
 - [x] Test with large citation sets (50+ citations) to ensure stability (tested with 3 citations, real-time display working perfectly)
+
+
+## Update Home Page Text and Placeholder
+- [x] Change label from "Paste Your Citations" to "Paste all footnotes for a preliminary verification"
+- [x] Update placeholder text to show example citations: "R v Adomako [1995] 1 AC 171 (HL).\nConsolidated Version of the Treaty on the Functioning of the European Union [2012] OJ C 326/47, art 102.\n..."

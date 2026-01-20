@@ -150,14 +150,14 @@ export default function Home() {
           <div className="mb-6">
             <div className="flex items-center justify-between mb-4">
               <label className="block text-sm font-medium text-slate-700">
-                Paste Your Citations
+                Paste all footnotes for a preliminary verification
               </label>
               <span className="text-xs text-gray-500">or upload a document below</span>
             </div>
             <Textarea
               value={citations}
               onChange={(e) => setCitations(e.target.value)}
-              placeholder="Paste all footnotes below for a preliminary verification"
+              placeholder="R v Adomako [1995] 1 AC 171 (HL).&#10;Consolidated Version of the Treaty on the Functioning of the European Union [2012] OJ C 326/47, art 102.&#10;..."
               className="min-h-[200px] font-mono text-sm"
             />
           </div>
