@@ -456,7 +456,7 @@ export default function Verify() {
                         {categoryLabels[category]}
                       </h2>
                       <div className="overflow-x-auto">
-                        <Table>
+                        <Table className="table-fixed w-full">
                           <TableHeader>
                             <TableRow>
                     <TableHead className="w-[5%]">No.</TableHead>
@@ -469,11 +469,11 @@ export default function Verify() {
                           <TableBody>
                             {results.map((result) => (
                               <TableRow key={result.id}>
-                                <TableCell className="font-medium">{result.number}</TableCell>
-                                <TableCell className="break-words whitespace-normal text-sm">
+                                <TableCell className="font-medium w-[5%]">{result.number}</TableCell>
+                                <TableCell className="break-words whitespace-normal text-sm w-[45%]">
                                   {result.fullText}
                                 </TableCell>
-                                <TableCell>
+                                <TableCell className="w-[10%]">
                                   {result.status === "verified" && (
                                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
                                       ✓ Verified
@@ -490,7 +490,7 @@ export default function Verify() {
                                     </span>
                                   )}
                                 </TableCell>
-                                <TableCell className="text-sm text-slate-600">
+                                <TableCell className="text-sm text-slate-600 w-[30%]">
                                   <div className="space-y-1">
                                     <div>{result.reason}</div>
                                     {result.authority && result.confidence > 0 && (
@@ -503,7 +503,7 @@ export default function Verify() {
                                     )}
                                   </div>
                                 </TableCell>
-                                <TableCell>
+                                <TableCell className="w-[10%]">
                                   {result.link && (
                                     <a
                                       href={result.link}
@@ -586,7 +586,7 @@ export default function Verify() {
                     {categoryLabels[category]}
                   </h2>
                   <div className="overflow-x-auto">
-                    <Table>
+                    <Table className="table-fixed w-full">
                       <TableHeader>
                         <TableRow>
                           <TableHead className="w-[5%]">No.</TableHead>
@@ -599,11 +599,11 @@ export default function Verify() {
                       <TableBody>
                         {results.map((result) => (
                           <TableRow key={result.id}>
-                            <TableCell className="font-medium">{result.number}</TableCell>
-                            <TableCell className="break-words whitespace-normal text-sm">
+                            <TableCell className="font-medium w-[5%]">{result.number}</TableCell>
+                            <TableCell className="break-words whitespace-normal text-sm w-[45%]">
                               {result.fullText}
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="w-[10%]">
                               {result.status === "verified" && (
                                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
                                   ✓ Verified
@@ -620,7 +620,7 @@ export default function Verify() {
                                 </span>
                               )}
                             </TableCell>
-                            <TableCell className="text-sm text-slate-600">
+                            <TableCell className="text-sm text-slate-600 w-[30%]">
                               <div className="space-y-1">
                                 <div>{result.reason}</div>
                                 {result.authority && result.confidence > 0 && (
@@ -633,7 +633,7 @@ export default function Verify() {
                                 )}
                               </div>
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="w-[10%]">
                               {result.link && (
                                 <a
                                   href={result.link}

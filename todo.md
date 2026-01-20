@@ -467,3 +467,5 @@
 - [x] Set fixed column widths: No. (5%), Citation (45%), Status (10%), Reason (30%), Link (10%)
 - [x] Apply consistent widths across all category tables (Cases, Books, Statutes, Policy Papers)
 - [x] Change hallucination status label from "⚠ Hallucinated" to "⚠ Risk of hallucination"
+- [x] Fix column widths not displaying correctly (Citation too narrow, Reason too wide)
+- [x] Add table-fixed layout and enforce width constraints properly
