@@ -341,3 +341,12 @@
 - [x] Create uploadFile endpoint for base64 file upload
 - [x] Handle upload errors gracefully
 - [ ] Test with real .docx and .pdf files (ready for user testing)
+
+
+## Fix PDF Extraction Error
+- [x] Test PDF extraction with user's NOWAG.pdf file
+- [x] Diagnose why pdf-parse is failing (v2 API change + ESM/CommonJS mismatch)
+- [x] Fix pdf-parse import to use dynamic import for ESM compatibility
+- [x] Update to pdf-parse v2 API (new PDFParse({ data: buffer }))
+- [x] Improve error handling and logging
+- [ ] Verify footnote extraction works correctly (ready for user testing)

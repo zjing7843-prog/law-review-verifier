@@ -2,7 +2,6 @@ import mammoth from 'mammoth';
 import axios from 'axios';
 import JSZip from 'jszip';
 import { parseStringPromise } from 'xml2js';
-import * as pdfParse from 'pdf-parse';
 
 export interface ExtractedFootnote {
   number: number;
@@ -17,12 +16,15 @@ export interface ExtractedFootnote {
  */
 export async function extractPdfText(buffer: Buffer): Promise<string> {
   try {
-    // @ts-ignore - pdf-parse has module resolution issues
-    const data = await (pdfParse as any)(buffer);
-    return data.text;
+    // pdf-parse v2 API - use dynamic import for ESM compatibility
+    const { PDFParse } = await import('pdf-parse');
+    const parser = new PDFParse({ data: buffer });
+    const result = await parser.getText();
+    return result.text || '';
   } catch (error) {
     console.error('Error extracting PDF text:', error);
-    throw new Error('Failed to extract text from PDF');
+    console.error('Error details:', error);
+    throw new Error(`Failed to extract text from PDF: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 
