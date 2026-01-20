@@ -148,6 +148,32 @@ async function performWebSearch(query: string, category: CitationCategory): Prom
   isHallucinated: boolean;
 }> {
   try {
+    // Add timeout wrapper to prevent hanging
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error('Search timeout after 60 seconds')), 60000);
+    });
+    
+    const searchPromise = performSearchWithLLM(query, category);
+    
+    return await Promise.race([searchPromise, timeoutPromise]);
+  } catch (error) {
+    console.error('[citationVerifier] Web search error:', error);
+    return { found: false, confidence: 0, isHallucinated: false };
+  }
+}
+
+/**
+ * Internal function to perform the actual LLM search
+ */
+async function performSearchWithLLM(query: string, category: CitationCategory): Promise<{ 
+  found: boolean; 
+  url?: string; 
+  snippet?: string;
+  confidence: number;
+  fieldMismatches?: string[];
+  isHallucinated: boolean;
+}> {
+  try {
     // Use LLM to perform web search and analyze results with strict field checking
     const searchPrompt = `You are a legal citation verification assistant acting as a law review editor. Search the web for the following citation and verify ALL fields match exactly.
 

@@ -497,3 +497,11 @@
 
 ## Remove Navigation Text
 - [x] Remove "Law Review Verifier" text from navigation bar
+
+
+## Fix Verification Interruption
+- [x] Investigate why verification stops after completing half of web searches (LLM calls hanging without timeout)
+- [x] Check for timeout issues in backend API (added 60s timeout wrapper)
+- [x] Check for error handling issues in frontend loop (already has try-catch with fallback)
+- [x] Add better error recovery to continue verification even if some citations fail (timeout returns unsure status)
+- [x] Test with 10+ citations to reproduce and verify fix (tested with 8 citations, all completed successfully without interruption)
