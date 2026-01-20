@@ -23,6 +23,7 @@ interface VerificationResult extends Citation {
   reason: string;
   link?: string; // URL if citation is found via web search
   authority?: "official" | "authoritative" | "general"; // Source authority level
+  confidence: number; // Confidence percentage (0-100)
 }
 
 export default function Verify() {
@@ -161,6 +162,7 @@ export default function Verify() {
             reason: verificationResult.reason,
             link: verificationResult.link,
             authority: verificationResult.authority,
+            confidence: verificationResult.confidence,
           });
         } catch (error) {
           console.error(`Error verifying citation ${citation.id}:`, error);
@@ -171,6 +173,7 @@ export default function Verify() {
             reason: "Verification service unavailable",
             link: `https://www.google.com/search?q=${encodeURIComponent(citation.fullText)}`,
             authority: "general",
+            confidence: 0,
           });
         }
         
@@ -192,6 +195,7 @@ export default function Verify() {
               reason: `Same as footnote ${referencesFootnote}`,
               link: originalFootnote.link,
               authority: originalFootnote.authority,
+              confidence: originalFootnote.confidence,
             });
           } else {
             // Referenced footnote not found, mark as unsure
@@ -201,6 +205,7 @@ export default function Verify() {
               reason: `References footnote ${referencesFootnote} (not found)`,
               link: undefined,
               authority: "general",
+              confidence: 50,
             });
           }
         } else {
@@ -213,6 +218,7 @@ export default function Verify() {
               reason: "Same as previous",
               link: previousCitation.link,
               authority: previousCitation.authority,
+              confidence: previousCitation.confidence,
             });
           } else {
             allResults.push({
@@ -221,6 +227,7 @@ export default function Verify() {
               reason: "Repeat reference (no original found)",
               link: undefined,
               authority: "general",
+              confidence: 50,
             });
           }
         }
@@ -234,6 +241,7 @@ export default function Verify() {
           reason: "Explanatory text (skipped)",
           link: undefined,
           authority: "general",
+          confidence: 0,
         });
       });
       
@@ -526,7 +534,12 @@ export default function Verify() {
                           <TableCell className="break-words whitespace-normal">
                             <div className="space-y-1">
                               <div className="text-sm">{result.reason}</div>
-                              {result.authority && getAuthorityBadge(result.authority)}
+                              <div className="flex gap-2 items-center flex-wrap">
+                                {result.authority && getAuthorityBadge(result.authority)}
+                                {result.confidence > 0 && (
+                                  <span className="text-xs text-slate-500">({result.confidence}% confidence)</span>
+                                )}
+                              </div>
                             </div>
                           </TableCell>
                           <TableCell>
@@ -592,7 +605,12 @@ export default function Verify() {
                           <TableCell className="break-words whitespace-normal">
                             <div className="space-y-1">
                               <div className="text-sm">{result.reason}</div>
-                              {result.authority && getAuthorityBadge(result.authority)}
+                              <div className="flex gap-2 items-center flex-wrap">
+                                {result.authority && getAuthorityBadge(result.authority)}
+                                {result.confidence > 0 && (
+                                  <span className="text-xs text-slate-500">({result.confidence}% confidence)</span>
+                                )}
+                              </div>
                             </div>
                           </TableCell>
                           <TableCell>
@@ -658,7 +676,12 @@ export default function Verify() {
                           <TableCell className="break-words whitespace-normal">
                             <div className="space-y-1">
                               <div className="text-sm">{result.reason}</div>
-                              {result.authority && getAuthorityBadge(result.authority)}
+                              <div className="flex gap-2 items-center flex-wrap">
+                                {result.authority && getAuthorityBadge(result.authority)}
+                                {result.confidence > 0 && (
+                                  <span className="text-xs text-slate-500">({result.confidence}% confidence)</span>
+                                )}
+                              </div>
                             </div>
                           </TableCell>
                           <TableCell>
@@ -724,7 +747,12 @@ export default function Verify() {
                           <TableCell className="break-words whitespace-normal">
                             <div className="space-y-1">
                               <div className="text-sm">{result.reason}</div>
-                              {result.authority && getAuthorityBadge(result.authority)}
+                              <div className="flex gap-2 items-center flex-wrap">
+                                {result.authority && getAuthorityBadge(result.authority)}
+                                {result.confidence > 0 && (
+                                  <span className="text-xs text-slate-500">({result.confidence}% confidence)</span>
+                                )}
+                              </div>
                             </div>
                           </TableCell>
                           <TableCell>
@@ -790,7 +818,12 @@ export default function Verify() {
                           <TableCell className="break-words whitespace-normal">
                             <div className="space-y-1">
                               <div className="text-sm">{result.reason}</div>
-                              {result.authority && getAuthorityBadge(result.authority)}
+                              <div className="flex gap-2 items-center flex-wrap">
+                                {result.authority && getAuthorityBadge(result.authority)}
+                                {result.confidence > 0 && (
+                                  <span className="text-xs text-slate-500">({result.confidence}% confidence)</span>
+                                )}
+                              </div>
                             </div>
                           </TableCell>
                           <TableCell>
@@ -856,7 +889,12 @@ export default function Verify() {
                           <TableCell className="break-words whitespace-normal">
                             <div className="space-y-1">
                               <div className="text-sm">{result.reason}</div>
-                              {result.authority && getAuthorityBadge(result.authority)}
+                              <div className="flex gap-2 items-center flex-wrap">
+                                {result.authority && getAuthorityBadge(result.authority)}
+                                {result.confidence > 0 && (
+                                  <span className="text-xs text-slate-500">({result.confidence}% confidence)</span>
+                                )}
+                              </div>
                             </div>
                           </TableCell>
                           <TableCell>
@@ -922,7 +960,12 @@ export default function Verify() {
                           <TableCell className="break-words whitespace-normal">
                             <div className="space-y-1">
                               <div className="text-sm">{result.reason}</div>
-                              {result.authority && getAuthorityBadge(result.authority)}
+                              <div className="flex gap-2 items-center flex-wrap">
+                                {result.authority && getAuthorityBadge(result.authority)}
+                                {result.confidence > 0 && (
+                                  <span className="text-xs text-slate-500">({result.confidence}% confidence)</span>
+                                )}
+                              </div>
                             </div>
                           </TableCell>
                           <TableCell>

@@ -428,3 +428,15 @@
 - [x] Update background colors to soft tones (warm off-white)
 - [x] Update text colors to comfortable grays instead of pure black
 - [x] Test all buttons and interactive elements for proper contrast
+
+
+## Enhance Hallucination Detection
+- [x] Update verification prompt to be more careful about marking citations as hallucinated
+- [x] Add confidence percentage (0-100%) to verification results
+- [x] Implement strict field correspondence checking (author, year, title, page numbers)
+- [x] Mark as hallucinated only when confidence > 90% that citation doesn't exist
+- [x] Detect author name mismatches (e.g., wrong author for a real article)
+- [x] Detect year mismatches (e.g., article exists but wrong publication year)
+- [x] Detect non-existent references (e.g., OJ C259/990 when only C259/1 exists)
+- [x] Update frontend to display confidence percentages for all verification statuses
+- [x] Test with example: European Commission OJ C259/1 vs C259/990 (C259/1 verified, C259/990 marked as hallucinated with 100% confidence)

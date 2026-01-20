@@ -14,6 +14,7 @@ export interface VerificationResult {
   reason: string;
   link?: string;
   authority: AuthorityLevel;
+  confidence: number; // Confidence percentage (0-100)
 }
 
 // Official legal database domains across multiple jurisdictions
@@ -136,27 +137,43 @@ function determineAuthority(url: string): AuthorityLevel {
 
 /**
  * Perform web search using LLM with search capabilities
- * This uses the Manus search infrastructure to perform real web searches
+ * Enhanced with hallucination detection and confidence scoring
  */
-async function performWebSearch(query: string, category: CitationCategory): Promise<{ found: boolean; url?: string; snippet?: string }> {
+async function performWebSearch(query: string, category: CitationCategory): Promise<{ 
+  found: boolean; 
+  url?: string; 
+  snippet?: string;
+  confidence: number;
+  fieldMismatches?: string[];
+  isHallucinated: boolean;
+}> {
   try {
-    // Use LLM to perform web search and analyze results
-    const searchPrompt = `You are a legal citation verification assistant. Search the web for the following citation and determine if it exists.
+    // Use LLM to perform web search and analyze results with strict field checking
+    const searchPrompt = `You are a legal citation verification assistant acting as a law review editor. Search the web for the following citation and verify ALL fields match exactly.
 
 Citation to verify: "${query}"
 Category: ${category}
 
-Instructions:
-1. Search for this citation on the web
-2. Check if you can find evidence that this citation exists
-3. Prioritize official legal databases, government sources, and academic publishers
-4. Return your findings in JSON format
+CRITICAL INSTRUCTIONS:
+1. Search for this citation on the web using official legal databases, government sources, and academic publishers
+2. Check EVERY field: author names, year, title, journal/reporter, volume, page numbers, paragraph numbers
+3. Be VERY CAREFUL about marking citations as hallucinated - only do so when confidence > 90%
+4. Mark as HALLUCINATED if:
+   - Author name exists but is attached to a different work
+   - Year is wrong (e.g., article exists but published in different year)
+   - Page/paragraph numbers don't exist (e.g., OJ C259/990 when only C259/1 exists)
+   - Title doesn't exist at all in any database
+5. Mark as UNSURE if you find similar citations but can't verify exact match
+6. Mark as VERIFIED only if all fields match exactly
 
 Return JSON with this structure:
 {
   "found": true/false,
   "url": "most authoritative URL found (if any)",
-  "snippet": "brief evidence of what you found (if any)"
+  "snippet": "brief evidence of what you found",
+  "confidence": 0-100 (percentage confidence in your assessment),
+  "fieldMismatches": ["list of fields that don't match, if any"],
+  "isHallucinated": true/false (true only if confidence > 90% that citation is fabricated)
 }`;
 
     const response = await invokeLLM({
@@ -174,9 +191,16 @@ Return JSON with this structure:
             properties: {
               found: { type: "boolean", description: "Whether the citation was found" },
               url: { type: "string", description: "Most authoritative URL found" },
-              snippet: { type: "string", description: "Brief evidence of what was found" }
+              snippet: { type: "string", description: "Brief evidence of what was found" },
+              confidence: { type: "number", description: "Confidence percentage 0-100" },
+              fieldMismatches: { 
+                type: "array", 
+                items: { type: "string" },
+                description: "List of fields that don't match" 
+              },
+              isHallucinated: { type: "boolean", description: "True if confidence > 90% that citation is fabricated" }
             },
-            required: ["found"],
+            required: ["found", "confidence", "isHallucinated"],
             additionalProperties: false
           }
         }
@@ -185,19 +209,19 @@ Return JSON with this structure:
 
     const content = response.choices[0].message.content;
     if (!content || typeof content !== 'string') {
-      return { found: false };
+      return { found: false, confidence: 0, isHallucinated: false };
     }
 
     const result = JSON.parse(content);
     return result;
   } catch (error) {
     console.error('[citationVerifier] Web search error:', error);
-    return { found: false };
+    return { found: false, confidence: 0, isHallucinated: false };
   }
 }
 
 /**
- * Verify a citation using real web search
+ * Verify a citation using real web search with hallucination detection
  */
 export async function verifyCitation(
   citationText: string,
@@ -216,24 +240,45 @@ export async function verifyCitation(
       status: "verified",
       reason: isOfficial ? "Official source link provided" : "Link provided in citation",
       link: embeddedUrl,
-      authority
+      authority,
+      confidence: 95 // High confidence when URL is embedded
     };
   }
 
-  // Step 2: Perform web search for the citation
+  // Step 2: Perform web search for the citation with field-level verification
   const searchResult = await performWebSearch(citationText, category);
 
-  if (!searchResult.found) {
-    // Citation not found via web search
+  // Step 3: Handle hallucinated citations (confidence > 90%)
+  if (searchResult.isHallucinated) {
+    const mismatchDetails = searchResult.fieldMismatches && searchResult.fieldMismatches.length > 0
+      ? `: ${searchResult.fieldMismatches.join(", ")}`
+      : "";
+    
     return {
-      status: "unsure",
-      reason: "Could not verify via web search",
+      status: "hallucinated",
+      reason: `Citation appears fabricated${mismatchDetails}`,
       link: `https://www.google.com/search?q=${encodeURIComponent(citationText)}`,
-      authority: "general"
+      authority: "general",
+      confidence: searchResult.confidence
     };
   }
 
-  // Step 3: Citation found - determine authority and status
+  // Step 4: Handle citations not found or with low confidence
+  if (!searchResult.found || searchResult.confidence < 70) {
+    const mismatchNote = searchResult.fieldMismatches && searchResult.fieldMismatches.length > 0
+      ? ` (possible mismatches: ${searchResult.fieldMismatches.join(", ")})`
+      : "";
+    
+    return {
+      status: "unsure",
+      reason: `Could not verify via web search${mismatchNote}`,
+      link: `https://www.google.com/search?q=${encodeURIComponent(citationText)}`,
+      authority: "general",
+      confidence: searchResult.confidence
+    };
+  }
+
+  // Step 5: Citation found and verified - determine authority and status
   const url = searchResult.url || `https://www.google.com/search?q=${encodeURIComponent(citationText)}`;
   const authority = searchResult.url ? determineAuthority(searchResult.url) : "general";
 
@@ -254,6 +299,7 @@ export async function verifyCitation(
     status: "verified",
     reason,
     link: url,
-    authority
+    authority,
+    confidence: searchResult.confidence
   };
 }
