@@ -558,3 +558,14 @@
 - [x] Change "Copy all your footnotes and paste them into the text box above" to "Paste all footnotes, or upload a document for extraction"
 - [x] Change "We'll parse them into a table where you can review and make corrections" to "Review the footnote table and make corrections before it proceeds"
 - [x] Change "We'll check each citation online and show you which ones are correct" to "Repeated sources are filtered out; verify citations and assess whether they are authoritative"
+
+
+## Implement Access Code System for Settings
+- [x] Create PasswordModal component with "Enter access code" prompt
+- [x] Set access code as "667788" (hardcoded)
+- [x] Store authentication state in sessionStorage after successful code entry
+- [x] Update Settings page to show access code modal instead of login requirement
+- [x] Replace "Please log in" message with access code prompt
+- [x] Test: public user clicks Settings → sees "Enter access code" modal
+- [x] Test: correct code entered → access Settings page and use Manus LLM
+- [x] Test: wrong code entered → show error message

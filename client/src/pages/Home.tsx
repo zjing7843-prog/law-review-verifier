@@ -7,6 +7,7 @@ import { CheckCircle2, ArrowRight, Settings, Upload, FileText, Loader2 } from "l
 import { trpc } from "@/lib/trpc";
 import { useLocation } from "wouter";
 import { getLoginUrl } from "@/const";
+import { PasswordModal } from "@/components/PasswordModal";
 
 export default function Home() {
   const { isAuthenticated, user } = useAuth();
@@ -15,6 +16,7 @@ export default function Home() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
   
   const uploadFileMutation = trpc.documents.uploadFile.useMutation();
   const uploadMutation = trpc.documents.upload.useMutation();
@@ -128,7 +130,14 @@ export default function Home() {
             <span className="font-semibold text-slate-800">Citation Verification Tool</span>
           </div>
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" onClick={() => setLocation("/settings")}>
+            <Button variant="ghost" size="sm" onClick={() => {
+              const isAuthenticated = sessionStorage.getItem("app_authenticated") === "true";
+              if (isAuthenticated) {
+                setLocation("/settings");
+              } else {
+                setShowPasswordModal(true);
+              }
+            }}>
               <Settings className="w-4 h-4 mr-2" />
               Settings
             </Button>
@@ -268,6 +277,15 @@ export default function Home() {
           </Card>
         </div>
       </div>
+
+      <PasswordModal
+        open={showPasswordModal}
+        onClose={() => setShowPasswordModal(false)}
+        onSuccess={() => {
+          setShowPasswordModal(false);
+          setLocation("/settings");
+        }}
+      />
     </div>
   );
 }

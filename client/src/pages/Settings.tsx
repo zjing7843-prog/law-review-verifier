@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -9,12 +9,25 @@ import { CheckCircle2, Settings as SettingsIcon, Save, AlertCircle } from "lucid
 import { useLocation } from "wouter";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
+import { PasswordModal } from "@/components/PasswordModal";
 
 type LlmProvider = "manus" | "openai" | "anthropic";
 
 export default function Settings() {
   const { user, isAuthenticated } = useAuth();
   const [, setLocation] = useLocation();
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [isCodeAuthenticated, setIsCodeAuthenticated] = useState(false);
+  
+  // Check access code authentication on mount
+  useEffect(() => {
+    const authenticated = sessionStorage.getItem("app_authenticated") === "true";
+    if (authenticated) {
+      setIsCodeAuthenticated(true);
+    } else {
+      setShowPasswordModal(true);
+    }
+  }, []);
   
   // Fetch current settings
   const { data: settings, isLoading, refetch } = trpc.llm.getSettings.useQuery(undefined, {
@@ -56,16 +69,33 @@ export default function Settings() {
     });
   };
 
-  if (!isAuthenticated) {
+  // Show access code modal if not authenticated
+  if (!isCodeAuthenticated) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 flex items-center justify-center">
-        <Card className="p-8 max-w-md">
-          <p className="text-center text-slate-600">Please log in to access settings</p>
-          <Button className="w-full mt-4" onClick={() => setLocation("/")}>
-            Go to Home
-          </Button>
-        </Card>
-      </div>
+      <>
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 flex items-center justify-center">
+          <Card className="p-8 max-w-md text-center">
+            <p className="text-slate-600 mb-4">Access code required to view settings</p>
+            <Button className="w-full" onClick={() => setShowPasswordModal(true)}>
+              Enter Access Code
+            </Button>
+            <Button variant="outline" className="w-full mt-2" onClick={() => setLocation("/")}>
+              Go to Home
+            </Button>
+          </Card>
+        </div>
+        <PasswordModal
+          open={showPasswordModal}
+          onClose={() => {
+            setShowPasswordModal(false);
+            setLocation("/");
+          }}
+          onSuccess={() => {
+            setShowPasswordModal(false);
+            setIsCodeAuthenticated(true);
+          }}
+        />
+      </>
     );
   }
 
