@@ -482,3 +482,9 @@
 - [x] Update Parse.tsx to show live progress during categorization instead of fixed 30%
 - [x] Add smooth progress animation that increments from 30% to 75% during API call
 - [x] Test with multiple citations to ensure progress updates smoothly
+
+
+## Fix Button Hover Effects
+- [x] Lighten hover effect for Settings button to improve text visibility
+- [x] Lighten hover effect for Browse Files button to improve text visibility
+- [x] Test hover states to ensure text remains clearly readable
