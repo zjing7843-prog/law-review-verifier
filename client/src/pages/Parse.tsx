@@ -141,17 +141,17 @@ export default function Parse() {
   const getCategoryBadge = (category: CitationCategory) => {
     switch (category) {
       case "case":
-        return <span className="px-2 py-1 rounded-full bg-black text-white text-xs font-medium">Case</span>;
+        return <span className="px-2 py-1 rounded-full bg-indigo-600 text-white text-xs font-medium">Case</span>;
       case "article":
-        return <span className="px-2 py-1 rounded-full bg-gray-800 text-white text-xs font-medium">Article</span>;
+        return <span className="px-2 py-1 rounded-full bg-emerald-600 text-white text-xs font-medium">Article</span>;
       case "book":
-        return <span className="px-2 py-1 rounded-full bg-gray-700 text-white text-xs font-medium">Book</span>;
+        return <span className="px-2 py-1 rounded-full bg-teal-600 text-white text-xs font-medium">Book</span>;
       case "policy_paper":
-        return <span className="px-2 py-1 rounded-full bg-gray-600 text-white text-xs font-medium">Policy Paper</span>;
+        return <span className="px-2 py-1 rounded-full bg-violet-600 text-white text-xs font-medium">Policy Paper</span>;
       case "website":
-        return <span className="px-2 py-1 rounded-full bg-gray-500 text-white text-xs font-medium">Website</span>;
+        return <span className="px-2 py-1 rounded-full bg-cyan-600 text-white text-xs font-medium">Website</span>;
       case "statute":
-        return <span className="px-2 py-1 rounded-full bg-gray-900 text-white text-xs font-medium">Statute</span>;
+        return <span className="px-2 py-1 rounded-full bg-amber-700 text-white text-xs font-medium">Statute</span>;
       case "explanatory_text":
         return <span className="px-2 py-1 rounded-full bg-gray-100 text-gray-500 text-xs font-medium italic">Explanatory Text</span>;
       case "other":
@@ -175,7 +175,7 @@ export default function Parse() {
       <nav className="border-b border-gray-200 bg-white sticky top-0 z-50">
         <div className="container max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-slate-600 rounded-lg flex items-center justify-center">
               <CheckCircle2 className="w-5 h-5 text-white" />
             </div>
             <span className="font-semibold text-slate-900">Law Review Verifier</span>
@@ -187,7 +187,7 @@ export default function Parse() {
       <div className="container mx-auto px-4 py-8">
         {isLoading && (
           <div className="flex flex-col items-center justify-center py-16">
-            <Loader2 className="w-12 h-12 text-black animate-spin mb-4" />
+                  <Loader2 className="w-12 h-12 text-slate-600 animate-spin mb-4" />
             <p className="text-lg font-medium text-slate-900 mb-2">Classifying footnotes to allow targeted verification</p>
             <p className="text-sm text-slate-600">This may take a few moments</p>
           </div>
@@ -214,19 +214,19 @@ export default function Parse() {
           </Card>
           <Card className="p-4 border border-gray-300 bg-gray-50">
             <div className="text-center">
-              <div className="text-2xl font-bold text-black mb-1">{caseCount}</div>
+              <div className="text-2xl font-bold text-slate-800 mb-1">{caseCount}</div>
               <p className="text-xs text-slate-600">Cases</p>
             </div>
           </Card>
           <Card className="p-4 border border-gray-300 bg-gray-100">
             <div className="text-center">
-              <div className="text-2xl font-bold text-black mb-1">{articleCount + bookCount}</div>
+              <div className="text-2xl font-bold text-slate-800 mb-1">{articleCount + bookCount}</div>
               <p className="text-xs text-slate-600">Articles & Books</p>
             </div>
           </Card>
           <Card className="p-4 border border-gray-300 bg-gray-100">
             <div className="text-center">
-              <div className="text-2xl font-bold text-black mb-1">{policyCount + websiteCount + statuteCount}</div>
+              <div className="text-2xl font-bold text-slate-800 mb-1">{policyCount + websiteCount + statuteCount}</div>
               <p className="text-xs text-slate-600">Policy/Web/Statute</p>
             </div>
           </Card>

@@ -122,10 +122,10 @@ export default function Home() {
       <nav className="border-b border-gray-200 bg-white sticky top-0 z-50">
         <div className="container max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-slate-600 rounded-lg flex items-center justify-center">
               <CheckCircle2 className="w-5 h-5 text-white" />
             </div>
-            <span className="font-semibold text-black">Law Review Verifier</span>
+            <span className="font-semibold text-slate-800">Law Review Verifier</span>
           </div>
           <div className="flex items-center gap-4">
             <span className="text-sm text-gray-600">Citation Verification Tool</span>
@@ -140,7 +140,7 @@ export default function Home() {
       {/* Main Content */}
       <div className="container max-w-4xl mx-auto px-4 py-16">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-black mb-4">
+          <h1 className="text-4xl font-bold text-slate-900 mb-4">
             Verify Your Footnotes
           </h1>
           <p className="text-lg text-gray-600">
@@ -152,7 +152,7 @@ export default function Home() {
         <Card className="p-8 shadow-lg">
           <div className="mb-6">
             <div className="flex items-center justify-between mb-4">
-              <label className="block text-sm font-medium text-black">
+              <label className="block text-sm font-medium text-slate-700">
                 Paste Your Citations
               </label>
               <span className="text-xs text-gray-500">or upload a document below</span>
@@ -167,14 +167,14 @@ export default function Home() {
 
           {/* File Upload Area */}
           <div className="mt-6 pt-6 border-t border-gray-200">
-            <label className="block text-sm font-medium text-black mb-3">
+            <label className="block text-sm font-medium text-slate-700 mb-3">
               Or Upload Document
             </label>
             <div
               className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
                 isDragging
-                  ? 'border-black bg-gray-50'
-                  : 'border-gray-300 hover:border-black'
+                  ? 'border-slate-400 bg-slate-50'
+                  : 'border-gray-300 hover:border-slate-400'
               } ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}
               onDragOver={(e) => {
                 e.preventDefault();
@@ -185,13 +185,13 @@ export default function Home() {
             >
               {isUploading ? (
                 <div className="flex flex-col items-center gap-2">
-                  <Loader2 className="w-8 h-8 text-black animate-spin" />
+                  <Loader2 className="w-8 h-8 text-slate-600 animate-spin" />
                   <p className="text-sm text-gray-600">Processing document...</p>
                 </div>
               ) : (
                 <>
                   <Upload className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                  <p className="text-sm font-medium text-black mb-1">
+                  <p className="text-sm font-medium text-slate-700 mb-1">
                     Drag and drop your document here
                   </p>
                   <p className="text-xs text-gray-500 mb-4">
