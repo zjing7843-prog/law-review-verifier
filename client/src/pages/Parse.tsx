@@ -147,21 +147,21 @@ export default function Parse() {
   const getCategoryBadge = (category: CitationCategory) => {
     switch (category) {
       case "case":
-        return <span className="px-2 py-1 rounded-full bg-indigo-600 text-white text-xs font-medium">Case</span>;
+        return <span className="category-badge-case px-2 py-1 rounded-full text-xs font-medium">Case</span>;
       case "article":
-        return <span className="px-2 py-1 rounded-full bg-emerald-600 text-white text-xs font-medium">Article</span>;
+        return <span className="category-badge-article px-2 py-1 rounded-full text-xs font-medium">Article</span>;
       case "book":
-        return <span className="px-2 py-1 rounded-full bg-teal-600 text-white text-xs font-medium">Book</span>;
+        return <span className="category-badge-book px-2 py-1 rounded-full text-xs font-medium">Book</span>;
       case "policy_paper":
-        return <span className="px-2 py-1 rounded-full bg-violet-600 text-white text-xs font-medium">Policy Paper</span>;
+        return <span className="category-badge-policy px-2 py-1 rounded-full text-xs font-medium">Policy Paper</span>;
       case "website":
-        return <span className="px-2 py-1 rounded-full bg-cyan-600 text-white text-xs font-medium">Website</span>;
+        return <span className="category-badge-website px-2 py-1 rounded-full text-xs font-medium">Website</span>;
       case "statute":
-        return <span className="px-2 py-1 rounded-full bg-amber-700 text-white text-xs font-medium">Statute</span>;
+        return <span className="category-badge-statute px-2 py-1 rounded-full text-xs font-medium">Statute</span>;
       case "explanatory_text":
-        return <span className="px-2 py-1 rounded-full bg-gray-100 text-gray-500 text-xs font-medium italic">Explanatory Text</span>;
+        return <span className="category-badge-explanatory px-2 py-1 rounded-full text-xs font-medium italic">Explanatory Text</span>;
       case "other":
-        return <span className="px-2 py-1 rounded-full bg-gray-200 text-gray-700 text-xs font-medium">Other</span>;
+        return <span className="category-badge-other px-2 py-1 rounded-full text-xs font-medium">Other</span>;
     }
   };
 

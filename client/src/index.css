@@ -43,39 +43,39 @@
 }
 
 :root {
-  --primary: oklch(0.15 0 0); /* Pure black */
-  --primary-foreground: oklch(1 0 0); /* Pure white */
-  --sidebar-primary: oklch(0.15 0 0);
-  --sidebar-primary-foreground: oklch(1 0 0);
-  --chart-1: oklch(0.3 0 0);
-  --chart-2: oklch(0.4 0 0);
-  --chart-3: oklch(0.5 0 0);
-  --chart-4: oklch(0.6 0 0);
-  --chart-5: oklch(0.7 0 0);
+  --primary: oklch(0.35 0.02 250); /* Soft dark blue-gray */
+  --primary-foreground: oklch(0.98 0 0); /* Off-white */
+  --sidebar-primary: oklch(0.35 0.02 250);
+  --sidebar-primary-foreground: oklch(0.98 0 0);
+  --chart-1: oklch(0.5 0.05 220);
+  --chart-2: oklch(0.55 0.05 240);
+  --chart-3: oklch(0.6 0.05 260);
+  --chart-4: oklch(0.65 0.05 280);
+  --chart-5: oklch(0.7 0.05 300);
   --radius: 0.5rem;
-  --background: oklch(1 0 0); /* Pure white background */
-  --foreground: oklch(0.15 0 0); /* Black text */
-  --card: oklch(1 0 0); /* White cards */
-  --card-foreground: oklch(0.15 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.15 0 0);
-  --secondary: oklch(0.95 0 0); /* Light gray */
-  --secondary-foreground: oklch(0.15 0 0);
-  --muted: oklch(0.96 0 0); /* Very light gray */
-  --muted-foreground: oklch(0.5 0 0); /* Medium gray */
-  --accent: oklch(0.15 0 0); /* Black accent */
-  --accent-foreground: oklch(1 0 0); /* White on black */
-  --destructive: oklch(0.15 0 0);
-  --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.9 0 0); /* Light gray border */
-  --input: oklch(0.95 0 0);
-  --ring: oklch(0.15 0 0); /* Black focus ring */
-  --sidebar: oklch(1 0 0);
-  --sidebar-foreground: oklch(0.15 0 0);
-  --sidebar-accent: oklch(0.95 0 0);
-  --sidebar-accent-foreground: oklch(0.15 0 0);
-  --sidebar-border: oklch(0.9 0 0);
-  --sidebar-ring: oklch(0.15 0 0);
+  --background: oklch(0.98 0.005 80); /* Warm off-white */
+  --foreground: oklch(0.30 0.01 250); /* Soft dark gray */
+  --card: oklch(0.99 0.003 80); /* Very light warm white */
+  --card-foreground: oklch(0.30 0.01 250);
+  --popover: oklch(0.99 0.003 80);
+  --popover-foreground: oklch(0.30 0.01 250);
+  --secondary: oklch(0.92 0.01 250); /* Soft light blue-gray */
+  --secondary-foreground: oklch(0.30 0.01 250);
+  --muted: oklch(0.94 0.01 80); /* Very light warm gray */
+  --muted-foreground: oklch(0.50 0.01 250); /* Medium gray */
+  --accent: oklch(0.35 0.02 250); /* Soft dark blue-gray */
+  --accent-foreground: oklch(0.98 0 0); /* Off-white */
+  --destructive: oklch(0.55 0.15 25); /* Soft red */
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.88 0.01 250); /* Soft gray border */
+  --input: oklch(0.96 0.01 80);
+  --ring: oklch(0.50 0.05 250); /* Soft blue-gray focus ring */
+  --sidebar: oklch(0.99 0.003 80);
+  --sidebar-foreground: oklch(0.30 0.01 250);
+  --sidebar-accent: oklch(0.92 0.01 250);
+  --sidebar-accent-foreground: oklch(0.30 0.01 250);
+  --sidebar-border: oklch(0.88 0.01 250);
+  --sidebar-ring: oklch(0.50 0.05 250);
 }
 
 .dark {
@@ -134,6 +134,53 @@
 }
 
 @layer components {
+  /* Times New Roman for placeholder text */
+  textarea::placeholder,
+  input::placeholder {
+    font-family: 'Times New Roman', Times, serif;
+  }
+  
+  /* Softer category badge colors */
+  .category-badge-case {
+    background-color: oklch(0.90 0.03 250);
+    color: oklch(0.35 0.05 250);
+  }
+  
+  .category-badge-article {
+    background-color: oklch(0.90 0.03 150);
+    color: oklch(0.30 0.08 150);
+  }
+  
+  .category-badge-book {
+    background-color: oklch(0.90 0.03 180);
+    color: oklch(0.30 0.08 180);
+  }
+  
+  .category-badge-policy {
+    background-color: oklch(0.90 0.03 280);
+    color: oklch(0.35 0.05 280);
+  }
+  
+  .category-badge-website {
+    background-color: oklch(0.90 0.03 200);
+    color: oklch(0.30 0.08 200);
+  }
+  
+  .category-badge-statute {
+    background-color: oklch(0.90 0.04 60);
+    color: oklch(0.35 0.10 60);
+  }
+  
+  .category-badge-explanatory {
+    background-color: oklch(0.92 0.01 250);
+    color: oklch(0.50 0.01 250);
+  }
+  
+  .category-badge-other {
+    background-color: oklch(0.91 0.01 250);
+    color: oklch(0.40 0.01 250);
+  }
+
   /**
    * Custom container utility that centers content and adds responsive padding.
    *

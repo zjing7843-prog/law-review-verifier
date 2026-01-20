@@ -418,3 +418,13 @@
 - [x] Return verification status, reason, link, and authority level
 - [x] Update Verify.tsx to call backend API instead of client-side mock logic
 - [x] Test with real citations to ensure accurate verification results (4/5 verified successfully)
+
+
+## UI Design Improvements
+- [x] Fix Settings and Browse File button text visibility (currently black on black)
+- [x] Soften category badge colors to be more comfortable and less vivid
+- [x] Change placeholder text font to Times New Roman
+- [x] Apply light color scheme throughout (not straight black/white) while maintaining minimalism
+- [x] Update background colors to soft tones (warm off-white)
+- [x] Update text colors to comfortable grays instead of pure black
+- [x] Test all buttons and interactive elements for proper contrast

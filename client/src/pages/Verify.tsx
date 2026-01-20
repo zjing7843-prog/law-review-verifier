@@ -292,15 +292,15 @@ export default function Verify() {
   });
 
   const getCategoryBadge = (category: CitationCategory) => {
-    const colors = {
-      case: "bg-indigo-100 text-indigo-700",
-      article: "bg-emerald-100 text-emerald-700",
-      book: "bg-teal-100 text-teal-700",
-      policy_paper: "bg-violet-100 text-violet-700",
-      website: "bg-cyan-100 text-cyan-700",
-      statute: "bg-amber-100 text-amber-700",
-      explanatory_text: "bg-gray-100 text-gray-600",
-      other: "bg-slate-100 text-slate-700",
+    const classes = {
+      case: "category-badge-case",
+      article: "category-badge-article",
+      book: "category-badge-book",
+      policy_paper: "category-badge-policy",
+      website: "category-badge-website",
+      statute: "category-badge-statute",
+      explanatory_text: "category-badge-explanatory",
+      other: "category-badge-other",
     };
 
     const labels = {
@@ -315,7 +315,7 @@ export default function Verify() {
     };
 
     return (
-      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colors[category]}`}>
+      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${classes[category]}`}>
         {labels[category]}
       </span>
     );
