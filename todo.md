@@ -476,3 +476,9 @@
 - [x] Ensure Citation column text wraps within 45% width boundary
 - [x] Ensure Reason column text wraps within 30% width boundary
 - [x] Test with long citations to verify no overlapping occurs
+
+
+## Fix Categorization Progress Bar
+- [x] Update Parse.tsx to show live progress during categorization instead of fixed 30%
+- [x] Add smooth progress animation that increments from 30% to 75% during API call
+- [x] Test with multiple citations to ensure progress updates smoothly

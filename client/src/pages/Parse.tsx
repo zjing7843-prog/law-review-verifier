@@ -58,24 +58,39 @@ export default function Parse() {
         allCitations.push(...subCitations);
       });
 
-      // Call LLM to categorize all citations
+      // Call LLM to categorize all citations with smooth progress animation
       setProgress(30); // Starting LLM categorization
-      const result = await categorizeMutation.mutateAsync({
-        citations: allCitations
-      });
-      setProgress(80); // LLM categorization complete
+      
+      // Simulate smooth progress during API call
+      const progressInterval = setInterval(() => {
+        setProgress(prev => {
+          if (prev >= 75) return prev; // Stop at 75% until API completes
+          return prev + 1;
+        });
+      }, 200); // Update every 200ms
+      
+      try {
+        const result = await categorizeMutation.mutateAsync({
+          citations: allCitations
+        });
+        clearInterval(progressInterval);
+        setProgress(80); // LLM categorization complete
+        
+        // Build parsed citations with LLM results
+        const parsed: ParsedCitation[] = result.map((item, index) => ({
+          id: `citation-${index}`,
+          number: String(index + 1),
+          category: item.category as CitationCategory,
+          fullText: item.citation
+        }));
 
-      // Build parsed citations with LLM results
-      const parsed: ParsedCitation[] = result.map((item, index) => ({
-        id: `citation-${index}`,
-        number: String(index + 1),
-        category: item.category as CitationCategory,
-        fullText: item.citation
-      }));
-
-      console.log('LLM categorized citations:', parsed);
-      setProgress(100); // Finalizing
-      setCitations(parsed);
+        console.log('LLM categorized citations:', parsed);
+        setProgress(100); // Finalizing
+        setCitations(parsed);
+      } catch (error) {
+        clearInterval(progressInterval);
+        throw error;
+      }
     } catch (error) {
       console.error('Failed to categorize citations:', error);
       toast.error('Failed to categorize citations. Please try again.');
