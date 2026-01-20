@@ -505,3 +505,39 @@
 - [x] Check for error handling issues in frontend loop (already has try-catch with fallback)
 - [x] Add better error recovery to continue verification even if some citations fail (timeout returns unsure status)
 - [x] Test with 10+ citations to reproduce and verify fix (tested with 8 citations, all completed successfully without interruption)
+
+
+## Filter (n X) References from Verification
+- [ ] Detect and skip footnote references like (n 1), (n 2), etc. during verification
+- [ ] These are cross-references to earlier citations, not new citations to verify
+- [ ] Update Verify.tsx to filter out citations containing (n X) pattern before verification
+- [ ] Test to ensure (n X) references don't appear in verification results
+
+## Fix Overlapping Text in Results Table
+- [ ] Investigate why text is still overlapping despite previous fixes
+- [ ] Add additional CSS constraints to prevent text overflow
+- [ ] Test with long citations to ensure no overlapping occurs
+
+## Add Direct Link Verification
+- [ ] When citation includes a URL, verify by directly accessing the link
+- [ ] Check if URL returns 200 OK status (exists) vs 404/error (broken link)
+- [ ] Ignore access dates - only verify link existence
+- [ ] Update citationVerifier.ts to extract and check URLs from citations
+
+
+## Filter (n X) References from Verification Results
+- [x] Update Verify.tsx to hide (n X) repeat citations from results table display
+- [x] Keep repeat citations in overall verification rate calculation
+- [x] Test to ensure (n X) references no longer show as hallucinated in results
+
+## Fix Overlapping Text in Results Table
+- [x] Add proper word-break and overflow-wrap CSS to Citation column
+- [x] Add proper word-break and overflow-wrap CSS to Reason column
+- [x] Test with long citations to ensure no text overlap
+
+## Add Direct Link Verification
+- [x] Extract URLs from citation text using regex
+- [x] For citations with URLs, check accessibility via HTTP HEAD request
+- [x] Ignore access dates when verifying links (only check if URL exists)
+- [x] Mark as verified if link is accessible, unsure if broken/restricted
+- [x] Add 10-second timeout for URL checks to prevent hanging

@@ -23,6 +23,7 @@ interface VerificationResult extends Citation {
   link: string;
   authority?: "official" | "authoritative" | "general";
   confidence: number;
+  isRepeat?: boolean; // Flag to hide repeat citations from display
 }
 
 export default function Verify() {
@@ -159,6 +160,7 @@ export default function Verify() {
               link: referencedResult.link,
               authority: referencedResult.authority,
               confidence: referencedResult.confidence,
+              isRepeat: true, // Mark as repeat to hide from display
             });
           } else {
             results.push({
@@ -168,6 +170,7 @@ export default function Verify() {
               link: "",
               authority: "general",
               confidence: 0,
+              isRepeat: true, // Mark as repeat to hide from display
             });
           }
         } else {
@@ -180,6 +183,7 @@ export default function Verify() {
               link: previousResult.link,
               authority: previousResult.authority,
               confidence: previousResult.confidence,
+              isRepeat: true, // Mark as repeat to hide from display
             });
           }
         }
@@ -311,15 +315,15 @@ export default function Verify() {
 
   const explanatoryCount = citations.filter((c) => c.category === "explanatory_text" || c.skipVerification).length;
 
-  // Group results by category for display (excluding explanatory text)
+  // Group results by category for display (excluding explanatory text and repeat citations)
   const resultsByCategory = {
-    case: verificationResults.filter((r) => r.category === "case"),
-    article: verificationResults.filter((r) => r.category === "article"),
-    book: verificationResults.filter((r) => r.category === "book"),
-    policy_paper: verificationResults.filter((r) => r.category === "policy_paper"),
-    website: verificationResults.filter((r) => r.category === "website"),
-    statute: verificationResults.filter((r) => r.category === "statute"),
-    other: verificationResults.filter((r) => r.category === "other"),
+    case: verificationResults.filter((r) => r.category === "case" && !r.isRepeat),
+    article: verificationResults.filter((r) => r.category === "article" && !r.isRepeat),
+    book: verificationResults.filter((r) => r.category === "book" && !r.isRepeat),
+    policy_paper: verificationResults.filter((r) => r.category === "policy_paper" && !r.isRepeat),
+    website: verificationResults.filter((r) => r.category === "website" && !r.isRepeat),
+    statute: verificationResults.filter((r) => r.category === "statute" && !r.isRepeat),
+    other: verificationResults.filter((r) => r.category === "other" && !r.isRepeat),
   };
 
   const verifiedCount = verificationResults.filter((r) => r.status === "verified").length;
@@ -470,7 +474,7 @@ export default function Verify() {
                             {results.map((result) => (
                               <TableRow key={result.id}>
                                 <TableCell className="font-medium w-[5%]">{result.number}</TableCell>
-                                <TableCell className="break-words whitespace-normal text-sm w-[45%] max-w-0 overflow-wrap">
+                                <TableCell className="break-words whitespace-normal text-sm w-[45%] max-w-0" style={{wordBreak: 'break-word', overflowWrap: 'break-word'}}>
                                   {result.fullText}
                                 </TableCell>
                                 <TableCell className="w-[10%]">
@@ -490,9 +494,9 @@ export default function Verify() {
                                     </span>
                                   )}
                                 </TableCell>
-                                <TableCell className="text-sm text-slate-600 w-[30%] max-w-0">
+                                <TableCell className="text-sm text-slate-600 w-[30%] max-w-0" style={{wordBreak: 'break-word', overflowWrap: 'break-word'}}>
                                   <div className="space-y-1">
-                                    <div className="break-words">{result.reason}</div>
+                                    <div className="break-words" style={{wordBreak: 'break-word'}}>{result.reason}</div>
                                     {result.authority && result.confidence > 0 && (
                                       <div className="flex items-center gap-2">
                                         {getAuthorityBadge(result.authority)}
@@ -600,7 +604,7 @@ export default function Verify() {
                         {results.map((result) => (
                           <TableRow key={result.id}>
                             <TableCell className="font-medium w-[5%]">{result.number}</TableCell>
-                            <TableCell className="break-words whitespace-normal text-sm w-[45%] max-w-0 overflow-wrap">
+                            <TableCell className="break-words whitespace-normal text-sm w-[45%] max-w-0" style={{wordBreak: 'break-word', overflowWrap: 'break-word'}}>
                               {result.fullText}
                             </TableCell>
                             <TableCell className="w-[10%]">
@@ -620,9 +624,9 @@ export default function Verify() {
                                 </span>
                               )}
                             </TableCell>
-                            <TableCell className="text-sm text-slate-600 w-[30%] max-w-0">
+                            <TableCell className="text-sm text-slate-600 w-[30%] max-w-0" style={{wordBreak: 'break-word', overflowWrap: 'break-word'}}>
                               <div className="space-y-1">
-                                <div className="break-words">{result.reason}</div>
+                                <div className="break-words" style={{wordBreak: 'break-word'}}>{result.reason}</div>
                                 {result.authority && result.confidence > 0 && (
                                   <div className="flex items-center gap-2">
                                     {getAuthorityBadge(result.authority)}

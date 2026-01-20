@@ -257,20 +257,52 @@ export async function verifyCitation(
 ): Promise<VerificationResult> {
   console.log(`[citationVerifier] Verifying citation: "${citationText}" (${category})`);
 
-  // Step 1: Check if citation already contains a URL
+  // Step 1: Check if citation contains a URL - verify by direct access (ignore access date)
   const embeddedUrl = extractUrlFromCitation(citationText);
   
   if (embeddedUrl) {
-    const authority = determineAuthority(embeddedUrl);
-    const isOfficial = authority === "official";
+    console.log(`[citationVerifier] Found URL in citation: ${embeddedUrl}`);
     
-    return {
-      status: "verified",
-      reason: isOfficial ? "Official source link provided" : "Link provided in citation",
-      link: embeddedUrl,
-      authority,
-      confidence: 95 // High confidence when URL is embedded
-    };
+    // Check if URL is accessible
+    try {
+      const response = await fetch(embeddedUrl, {
+        method: 'HEAD',
+        redirect: 'follow',
+        signal: AbortSignal.timeout(10000) // 10 second timeout
+      });
+      
+      if (response.ok) {
+        const authority = determineAuthority(embeddedUrl);
+        return {
+          status: "verified",
+          reason: authority === "official" 
+            ? "Link verified - official source accessible"
+            : authority === "authoritative"
+            ? "Link verified - authoritative source accessible"
+            : "Link verified - source accessible",
+          link: embeddedUrl,
+          authority,
+          confidence: 100
+        };
+      } else {
+        return {
+          status: "unsure",
+          reason: `Link provided but returned ${response.status} status (may be broken or restricted)`,
+          link: embeddedUrl,
+          authority: "general",
+          confidence: 0
+        };
+      }
+    } catch (error) {
+      console.error(`[citationVerifier] URL check failed for ${embeddedUrl}:`, error);
+      return {
+        status: "unsure",
+        reason: "Link provided but not accessible (may be broken or require authentication)",
+        link: embeddedUrl,
+        authority: "general",
+        confidence: 0
+      };
+    }
   }
 
   // Step 2: Perform web search for the citation with field-level verification
