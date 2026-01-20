@@ -460,14 +460,14 @@ export default function Verify() {
                         {categoryLabels[category]}
                       </h2>
                       <div className="overflow-x-auto">
-                        <Table className="w-full">
+                        <Table className="table-fixed w-full">
                           <TableHeader>
                             <TableRow>
-                    <TableHead className="w-16">No.</TableHead>
-                    <TableHead className="min-w-[300px]">Citation</TableHead>
-                    <TableHead className="w-32">Status</TableHead>
-                    <TableHead className="min-w-[400px]">Reason</TableHead>
-                              <TableHead className="w-24">Link</TableHead>
+                    <TableHead className="w-[5%]">No.</TableHead>
+                    <TableHead className="w-[45%]">Citation</TableHead>
+                    <TableHead className="w-[10%]">Status</TableHead>
+                    <TableHead className="w-[30%]">Reason</TableHead>
+                              <TableHead className="w-[10%]">Link</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
@@ -575,14 +575,14 @@ export default function Verify() {
                     {categoryLabels[category]}
                   </h2>
                   <div className="overflow-x-auto">
-                    <Table className="w-full">
+                    <Table className="table-fixed w-full">
                       <TableHeader>
                         <TableRow>
-                          <TableHead className="w-16">No.</TableHead>
-                          <TableHead className="min-w-[300px]">Citation</TableHead>
-                          <TableHead className="w-32">Status</TableHead>
-                          <TableHead className="min-w-[400px]">Reason</TableHead>
-                          <TableHead className="w-24">Link</TableHead>
+                          <TableHead className="w-[5%]">No.</TableHead>
+                          <TableHead className="w-[45%]">Citation</TableHead>
+                          <TableHead className="w-[10%]">Status</TableHead>
+                          <TableHead className="w-[30%]">Reason</TableHead>
+                          <TableHead className="w-[10%]">Link</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>

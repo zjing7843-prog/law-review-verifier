@@ -283,10 +283,10 @@ export async function verifyCitation(
         return {
           status: "verified",
           reason: authority === "official" 
-            ? "Link verified - official source accessible"
+            ? "Official source accessible"
             : authority === "authoritative"
-            ? "Link verified - authoritative source accessible"
-            : "Link verified - source accessible",
+            ? "Authoritative source accessible"
+            : "Source accessible",
           link: embeddedUrl,
           authority,
           confidence: 100
@@ -294,7 +294,7 @@ export async function verifyCitation(
       } else {
         return {
           status: "unsure",
-          reason: `Link provided but returned ${response.status} status (may be broken or restricted)`,
+          reason: `Link returned ${response.status} status`,
           link: embeddedUrl,
           authority: "general",
           confidence: 0
@@ -304,7 +304,7 @@ export async function verifyCitation(
       console.error(`[citationVerifier] URL check failed for ${embeddedUrl}:`, error);
       return {
         status: "unsure",
-        reason: "Link provided but not accessible (may be broken or require authentication)",
+        reason: "Link not accessible",
         link: embeddedUrl,
         authority: "general",
         confidence: 0
@@ -337,7 +337,7 @@ export async function verifyCitation(
     console.error('[citationVerifier] All retry attempts failed:', lastError);
     return {
       status: "unsure",
-      reason: "Verification service temporarily unavailable",
+      reason: "Service temporarily unavailable",
       link: `https://www.google.com/search?q=${encodeURIComponent(citationText)}`,
       authority: "general",
       confidence: 0
@@ -367,7 +367,7 @@ export async function verifyCitation(
     
     return {
       status: "unsure",
-      reason: `Could not verify via web search${mismatchNote}`,
+      reason: `Could not verify${mismatchNote}`,
       link: `https://www.google.com/search?q=${encodeURIComponent(citationText)}`,
       authority: "general",
       confidence: searchResult.confidence

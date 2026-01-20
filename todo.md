@@ -616,3 +616,15 @@
 - [x] Should be: verifiedCount + hallucinatedCount + unsureCount
 - [x] Currently showing all parsed citations including filtered ones
 - [x] Remove "Overall Correctness" card entirely from results page
+
+
+## Revert Table Layout and Shorten Reasons (CRITICAL)
+- [x] Revert table layout back to table-fixed with percentage widths (5%, 45%, 10%, 30%, 10%)
+- [x] Remove min-w-[400px] and other flexible width changes
+- [x] Modify verification reason generation to be shorter and more concise
+- [x] Remove phrases like "(may be broken or require authentication)"
+- [x] Keep reasons under 50-60 characters when possible
+- [x] Changed "Link provided but not accessible (may be broken or require authentication)" → "Link not accessible"
+- [x] Changed "Link provided but returned X status (may be broken or restricted)" → "Link returned X status"
+- [x] Changed "Could not verify via web search" → "Could not verify"
+- [x] Changed "Link verified - official source accessible" → "Official source accessible"
