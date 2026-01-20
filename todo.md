@@ -552,3 +552,9 @@
 - [x] Fix URL extraction regex to exclude trailing > and punctuation
 - [x] Add better error logging for URL check failures
 - [x] Test with 10 citations to ensure completion without interruption (all 9 unique citations completed successfully in 4 minutes)
+
+
+## Update Home Page UI Text
+- [x] Change "Copy all your footnotes and paste them into the text box above" to "Paste all footnotes, or upload a document for extraction"
+- [x] Change "We'll parse them into a table where you can review and make corrections" to "Review the footnote table and make corrections before it proceeds"
+- [x] Change "We'll check each citation online and show you which ones are correct" to "Repeated sources are filtered out; verify citations and assess whether they are authoritative"

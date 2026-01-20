@@ -243,7 +243,7 @@ export default function Home() {
             </div>
             <h3 className="font-semibold mb-2">Paste Citations</h3>
             <p className="text-sm text-slate-600">
-              Copy all your footnotes and paste them into the text box above
+              Paste all footnotes, or upload a document for extraction
             </p>
           </Card>
 
@@ -253,7 +253,7 @@ export default function Home() {
             </div>
             <h3 className="font-semibold mb-2">Review & Edit</h3>
             <p className="text-sm text-slate-600">
-              We'll parse them into a table where you can review and make corrections
+              Review the footnote table and make corrections before it proceeds
             </p>
           </Card>
 
@@ -263,7 +263,7 @@ export default function Home() {
             </div>
             <h3 className="font-semibold mb-2">Verify</h3>
             <p className="text-sm text-slate-600">
-              We'll check each citation online and show you which ones are correct
+              Repeated sources are filtered out; verify citations and assess whether they are authoritative
             </p>
           </Card>
         </div>
