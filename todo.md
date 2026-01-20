@@ -374,3 +374,13 @@
 - [x] Placeholder text already uses consistent monospace font
 - [x] Add subtle color highlights for interactive elements (hover states with slate-400)
 - [x] Ensure overall aesthetic is sophisticated with muted color palette
+
+
+## Improve Footnote Extraction with LLM
+- [x] Replace regex-based footnote extraction with LLM-based extraction
+- [x] Prompt LLM to identify text below horizontal lines (footnote separators)
+- [x] Instruct LLM to look for smaller font sizes (typical footnote formatting)
+- [x] Detect numbered sequences starting from 1 (footnote numbering)
+- [x] Extract complete footnotes without losing any words
+- [x] Handle multi-line footnotes and continuation across pages
+- [ ] Test with user's NOWAG.pdf to verify accuracy (ready for testing)

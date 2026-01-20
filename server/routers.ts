@@ -4,7 +4,8 @@ import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import * as db from "./db";
-import { downloadFile, extractDocxText, extractPdfText, extractFootnotes } from "./documentProcessor";
+import { extractDocxText, extractPdfText, downloadFile, extractFootnotes } from './documentProcessor';
+import { extractFootnotesWithLLM } from './llmFootnoteExtractor';
 import { categorizeCitationsBatch, CitationCategorySchema } from "./citationCategorizer";
 import { uploadFileToS3 } from "./fileUpload";
 
@@ -147,8 +148,9 @@ export const appRouter = router({
           text = await extractDocxText(buffer);
         }
         
-        // Extract footnotes
-        const footnotes = extractFootnotes(text);
+        // Extract footnotes using LLM for better accuracy
+        console.log('[extractFootnotes] Using LLM-based extraction for accurate footnote identification');
+        const footnotes = await extractFootnotesWithLLM(text);
         
         // Save footnotes to database
         const footnoteData = footnotes.map(fn => ({
