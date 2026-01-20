@@ -6,6 +6,7 @@ import { z } from "zod";
 import * as db from "./db";
 import { downloadFile, extractDocxText, extractPdfText, extractFootnotes } from "./documentProcessor";
 import { categorizeCitationsBatch, CitationCategorySchema } from "./citationCategorizer";
+import { uploadFileToS3 } from "./fileUpload";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -63,6 +64,27 @@ export const appRouter = router({
   }),
 
   documents: router({
+    uploadFile: protectedProcedure
+      .input(z.object({
+        fileName: z.string(),
+        fileData: z.string(), // base64 encoded file data
+        contentType: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        // Decode base64 file data
+        const buffer = Buffer.from(input.fileData, 'base64');
+        
+        // Upload to S3
+        const result = await uploadFileToS3(
+          ctx.user.id,
+          input.fileName,
+          buffer,
+          input.contentType
+        );
+        
+        return result;
+      }),
+    
     upload: protectedProcedure
       .input(z.object({
         fileName: z.string(),

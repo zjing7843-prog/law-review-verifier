@@ -332,3 +332,12 @@
 - [ ] Test with real Word documents containing various footnote styles (requires authentication)
 - [ ] Test with PDF documents containing footnotes (requires authentication)
 - [ ] Implement proper S3 upload for production use (currently using temporary URLs)
+
+
+## Fix File Upload S3 Integration
+- [x] Replace temporary blob URL with proper S3 upload
+- [x] Implement client-side file upload to S3 using storage helper
+- [x] Pass S3 URL to backend for document processing
+- [x] Create uploadFile endpoint for base64 file upload
+- [x] Handle upload errors gracefully
+- [ ] Test with real .docx and .pdf files (ready for user testing)

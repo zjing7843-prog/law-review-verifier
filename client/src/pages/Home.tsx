@@ -16,6 +16,7 @@ export default function Home() {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   
+  const uploadFileMutation = trpc.documents.uploadFile.useMutation();
   const uploadMutation = trpc.documents.upload.useMutation();
   const extractMutation = trpc.documents.extractFootnotes.useMutation();
 
@@ -49,25 +50,39 @@ export default function Home() {
     setUploadError(null);
 
     try {
-      // For now, show a message that file upload requires authentication
-      // In a real implementation, we would:
-      // 1. Upload file to S3
-      // 2. Call backend to extract footnotes
-      // 3. Populate the textarea with extracted text
-      
       if (!isAuthenticated) {
         setUploadError('Please sign in to upload documents. You can still paste citations manually.');
         return;
       }
 
-      // Create a temporary URL for the file (for demo purposes)
-      const fileUrl = URL.createObjectURL(file);
+      // Read file as array buffer
+      const arrayBuffer = await file.arrayBuffer();
+      const uint8Array = new Uint8Array(arrayBuffer);
       
-      // Upload document metadata
+      // Convert to base64 for transmission
+      let binary = '';
+      for (let i = 0; i < uint8Array.byteLength; i++) {
+        binary += String.fromCharCode(uint8Array[i]);
+      }
+      const base64Data = btoa(binary);
+      
+      // Determine content type
+      const contentType = fileType === 'docx' 
+        ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        : 'application/pdf';
+      
+      // Upload file to S3
+      const uploadFileResult = await uploadFileMutation.mutateAsync({
+        fileName: file.name,
+        fileData: base64Data,
+        contentType,
+      });
+      
+      // Create document record with S3 URL
       const uploadResult = await uploadMutation.mutateAsync({
         fileName: file.name,
         fileType,
-        fileUrl, // In production, this would be the S3 URL after upload
+        fileUrl: uploadFileResult.url,
       });
 
       // Extract footnotes from the uploaded document
