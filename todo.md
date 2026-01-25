@@ -672,3 +672,14 @@
 - [x] Changed "Found on official government source" → "Official source"
 - [x] Changed "Found on authoritative academic source" → "Authoritative source"
 - [x] Changed "Found via web search" → "Found via search"
+
+
+## Fix Status Column Text Wrapping (CRITICAL)
+- [x] "Risk of hallucination" text in Status column is overlapping/not wrapping
+- [x] Add proper text wrapping to Status column badges
+- [x] Ensure "Risk of hallucination" displays on multiple lines if needed
+- [x] Test with all status types: Verified, Unsure, Risk of hallucination
+- [x] Added wordBreak: 'break-word', overflowWrap: 'break-word' to TableCell
+- [x] Added whitespace-normal to all status badge spans
+- [x] Added align-top to Status column for consistent alignment
+- [x] Applied to both verifying and results sections

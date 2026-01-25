@@ -477,19 +477,19 @@ export default function Verify() {
                                 <TableCell className="break-words whitespace-normal text-sm" style={{wordBreak: 'break-word', overflowWrap: 'break-word'}}>
                                   {result.fullText}
                                 </TableCell>
-                                <TableCell>
+                                <TableCell className="align-top" style={{wordBreak: 'break-word', overflowWrap: 'break-word'}}>
                                   {result.status === "verified" && (
-                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
+                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700 whitespace-normal">
                                       ✓ Verified
                                     </span>
                                   )}
                                   {result.status === "hallucinated" && (
-                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700 whitespace-normal">
                                       ⚠ Risk of hallucination
                                     </span>
                                   )}
                                   {result.status === "unsure" && (
-                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700 whitespace-normal">
                                       ? Unsure
                                     </span>
                                   )}
@@ -589,19 +589,19 @@ export default function Verify() {
                             <TableCell className="break-words whitespace-normal text-sm" style={{wordBreak: 'break-word', overflowWrap: 'break-word'}}>
                               {result.fullText}
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="align-top" style={{wordBreak: 'break-word', overflowWrap: 'break-word'}}>
                               {result.status === "verified" && (
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700 whitespace-normal">
                                   ✓ Verified
                                 </span>
                               )}
                               {result.status === "hallucinated" && (
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700 whitespace-normal">
                                   ⚠ Risk of hallucination
                                 </span>
                               )}
                               {result.status === "unsure" && (
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700 whitespace-normal">
                                   ? Unsure
                                 </span>
                               )}
